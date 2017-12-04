@@ -19,7 +19,7 @@
     "gulp": "gulp"
   },
   "engines": {
-    "node": ">=4.0.0"
+    "node": ">=4.8.0"
   },
   "devDependencies": {
     "@types/node": "^8.0.54",
