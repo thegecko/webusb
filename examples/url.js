@@ -23,5 +23,9 @@
 * SOFTWARE.
 */
 
-export class WebUSB {
-}
+var usb = require('../index');
+
+usb.getDevices()
+.then(devices => {
+    devices.forEach(device => console.log(device));
+});

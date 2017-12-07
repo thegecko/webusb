@@ -37,6 +37,6 @@
     "typescript": "^2.6.2"
   },
   "dependencies": {
-    "usb": "^1.2.0"
+    "usb": "^1.4.0"
   }
 }
