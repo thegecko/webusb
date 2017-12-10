@@ -15,6 +15,6 @@ $ npm install webusb
 
 ## Getting Started
 
-See the examples in [src/examples/](https://github.com/thegecko/webusb/tree/master/src/examples/) or view the API documentation at:
+See the examples in [examples/](https://github.com/thegecko/webusb/tree/master/examples/) or view the API documentation at:
 
 https://thegecko.github.io/webusb/
