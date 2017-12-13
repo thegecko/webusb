@@ -25,6 +25,12 @@
 
 import { getDeviceList, Device } from "usb";
 import { USBDevice } from "./device";
+const usb = {
+    LIBUSB_ENDPOINT_IN: 0x80,
+    LIBUSB_REQUEST_GET_DESCRIPTOR: 0x06,
+    LIBUSB_DT_BOS: 0x0f,
+    LIBUSB_DT_BOS_SIZE: 5
+};
 
 /**
  * @hidden
@@ -38,9 +44,92 @@ export interface Adapter {
  */
 export class USBAdapter implements Adapter {
 
+    private getBosDescriptor(device, callback) {
+
+        if (device.deviceDescriptor.bcdUSB < 0x201) {
+            // BOS is only supported from USB 2.0.1
+            return callback(undefined, null);
+        }
+
+        device.controlTransfer(
+            usb.LIBUSB_ENDPOINT_IN,
+            usb.LIBUSB_REQUEST_GET_DESCRIPTOR,
+            (usb.LIBUSB_DT_BOS << 8),
+            0,
+            usb.LIBUSB_DT_BOS_SIZE,
+            (error1, buffer1) => {
+                if (error1) return callback(undefined, null);
+
+                const totalLength = buffer1.readUInt16LE(2);
+                device.controlTransfer(
+                    usb.LIBUSB_ENDPOINT_IN,
+                    usb.LIBUSB_REQUEST_GET_DESCRIPTOR,
+                    (usb.LIBUSB_DT_BOS << 8),
+                    0,
+                    totalLength,
+                    (error, buffer) => {
+                        if (error) return callback(undefined, null);
+
+                        const descriptor = {
+                            bLength: buffer.readUInt8(0),
+                            bDescriptorType: buffer.readUInt8(1),
+                            wTotalLength: buffer.readUInt16LE(2),
+                            bNumDeviceCaps: buffer.readUInt8(4),
+                            capabilities: []
+                        };
+
+                        let i = usb.LIBUSB_DT_BOS_SIZE;
+                        while (i < descriptor.wTotalLength) {
+                            const capability: any = {
+                                bLength: buffer.readUInt8(i + 0),
+                                bDescriptorType: buffer.readUInt8(i + 1),
+                                bDevCapabilityType: buffer.readUInt8(i + 2)
+                            };
+
+                            capability.dev_capability_data = buffer.slice(i + 3, i + capability.bLength);
+                            descriptor.capabilities.push(capability);
+                            i += capability.bLength;
+                        }
+
+                        // Cache descriptor
+                        callback(undefined, descriptor);
+                    }
+                );
+            }
+        );
+    }
+
+    private getDeviceCapabilities(device, callback) {
+        const capabilities = [];
+
+        this.getBosDescriptor(device, (error, descriptor) => {
+            if (error) return callback(error, null);
+
+            const len = descriptor ? descriptor.capabilities.length : 0;
+            for (let i = 0; i < len; i++) {
+                capabilities.push({
+                    device: device,
+                    id: i,
+                    descriptor: descriptor.capabilities[i],
+                    type: descriptor.capabilities[i].bDevCapabilityType,
+                    data: descriptor.capabilities[i].dev_capability_data
+                });
+            }
+
+            callback(undefined, capabilities);
+        });
+    }
+
     private getCapabilities(device) {
         return new Promise((resolve, reject) => {
-            device.getCapabilities((error, capabilities) => {
+            try {
+                device.open();
+            } catch (_e) {
+                resolve([]);
+            }
+            // device.getCapabilities((error, capabilities) => {
+            this.getDeviceCapabilities(device, (error, capabilities) => {
+                device.close();
                 if (error) return reject(error);
                 resolve(capabilities);
             });
