@@ -10,3 +10,9 @@ Node.js implementation of the WebUSB Specification
 ```bash
 $ npm install webusb
 ```
+
+## Specification
+
+The WebUSB specification can be found here:
+
+https://wicg.github.io/webusb/

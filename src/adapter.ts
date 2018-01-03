@@ -25,6 +25,10 @@
 
 import { getDeviceList, Device } from "usb";
 import { USBDevice } from "./device";
+
+/**
+ * @hidden
+ */
 const usb = {
     LIBUSB_ENDPOINT_IN: 0x80,
     LIBUSB_REQUEST_GET_DESCRIPTOR: 0x06,

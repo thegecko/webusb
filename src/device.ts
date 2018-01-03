@@ -47,15 +47,8 @@ export class USBDevice {
 
     public opened: boolean = false;
 
-    /**
-     * @hidden
-     */
     constructor(init?: Partial<USBDevice>) {
-        for (const key in init) {
-            if (init.hasOwnProperty(key)) {
-                this[key] = init[key];
-            }
-        }
+        Object.assign(this, init);
     }
 
     public open(): Promise<void> {
