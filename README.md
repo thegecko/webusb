@@ -29,26 +29,42 @@ https://wicg.github.io/webusb/
 
 ### USB
 
-- [x] getDevices
-- [ ] requestDevice
+- [x] getDevices()
+- [ ] requestDevice()
 
 ### USBDevice
 
-- [ ] USBDevice
-- [ ] USBDevice.open()
-- [ ] USBDevice.close()
-- [ ] USBDevice.selectConfiguration()
-- [ ] USBDevice.claimInterface()
-- [ ] USBDevice.releaseInterface()
-- [ ] USBDevice.selectAlternateInterface()
-- [ ] USBDevice.controlTransferIn()
-- [ ] USBDevice.controlTransferOut()
-- [ ] USBDevice.clearHalt()
-- [ ] USBDevice.transferIn()
-- [ ] USBDevice.transferOut()
-- [ ] USBDevice.isochronousTransferIn()
-- [ ] USBDevice.isochronousTransferOut()
-- [ ] USBDevice.reset()
+- [x] usbVersionMajor
+- [x] usbVersionMinor
+- [x] usbVersionSubminor
+- [x] deviceClass
+- [x] deviceSubclass
+- [x] deviceProtocol
+- [x] vendorId
+- [x] productId
+- [x] deviceVersionMajor
+- [x] deviceVersionMinor
+- [x] deviceVersionSubminor
+- [x] manufacturerName
+- [x] productName
+- [x] serialNumber
+- [ ] configuration
+- [ ] configurations
+- [ ] opened
+- [ ] open()
+- [ ] close()
+- [ ] selectConfiguration()
+- [ ] claimInterface()
+- [ ] releaseInterface()
+- [ ] selectAlternateInterface()
+- [ ] controlTransferIn()
+- [ ] controlTransferOut()
+- [ ] clearHalt()
+- [ ] transferIn()
+- [ ] transferOut()
+- [ ] isochronousTransferIn() - unsupportd in node-usb
+- [ ] isochronousTransferOut() - unsupportd in node-usb
+- [ ] reset()
 
 ### Events
 
@@ -57,6 +73,7 @@ https://wicg.github.io/webusb/
 
 ### Other
 
+- [x] USBDevice.url
 - [ ] Device selector hook
 - [ ] Examples
 - [ ] API Documentation
