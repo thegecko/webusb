@@ -23,4 +23,5 @@
 * SOFTWARE.
 */
 
-export * from "./usb";
+import { USB } from "./usb";
+export = USB;

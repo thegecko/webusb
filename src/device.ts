@@ -23,115 +23,125 @@
 * SOFTWARE.
 */
 
-import { USBDirection, USBControlTransferParameters, USBInTransferResult, USBOutTransferResult, USBIsochronousInTransferResult, USBIsochronousOutTransferResult } from "./interfaces";
+import { USBConfiguration, USBDirection, USBControlTransferParameters, USBInTransferResult, USBOutTransferResult, USBIsochronousInTransferResult, USBIsochronousOutTransferResult } from "./interfaces";
 
+/**
+ * USB Device class
+ */
 export class USBDevice {
 
-    public usbVersionMajor: number;
-    public usbVersionMinor: number;
-    public usbVersionSubminor: number;
-    public deviceClass: number;
-    public deviceSubclass: number;
-    public deviceProtocol: number;
-    public vendorId: number;
-    public productId: number;
-    public deviceVersionMajor: number;
-    public deviceVersionMinor: number;
-    public deviceVersionSubminor: number;
+    public readonly usbVersionMajor: number;
+    public readonly usbVersionMinor: number;
+    public readonly usbVersionSubminor: number;
+    public readonly deviceClass: number;
+    public readonly deviceSubclass: number;
+    public readonly deviceProtocol: number;
+    public readonly vendorId: number;
+    public readonly productId: number;
+    public readonly deviceVersionMajor: number;
+    public readonly deviceVersionMinor: number;
+    public readonly deviceVersionSubminor: number;
 
-    public manufacturerName: string = null;
-    public productName: string = null;
-    public serialNumber: string = null;
+    public readonly manufacturerName: string = null;
+    public readonly productName: string = null;
+    public readonly serialNumber: string = null;
 
-    public url: string = null;
+    public readonly configuration?: USBConfiguration;
+    public readonly configurations: Array<USBConfiguration>;
 
-    public opened: boolean = false;
+    public readonly opened: boolean = false;
 
+    public readonly url: string = null;
+
+    /**
+     * USB Device constructor
+     * @param init A partial class to initialise values
+     */
     constructor(init?: Partial<USBDevice>) {
         Object.assign(this, init);
     }
 
     public open(): Promise<void> {
-        return new Promise((resolve, _reject) => {
-            resolve();
+        return new Promise((_resolve, reject) => {
+            reject("error: method not implemented");
         });
     }
 
     public close(): Promise<void> {
-        return new Promise((resolve, _reject) => {
-            resolve();
+        return new Promise((_resolve, reject) => {
+            reject("error: method not implemented");
         });
     }
 
     public selectConfiguration(_configurationValue: number): Promise<void> {
-        return new Promise((resolve, _reject) => {
-            resolve();
+        return new Promise((_resolve, reject) => {
+            reject("error: method not implemented");
         });
     }
 
     public claimInterface(_interfaceNumber: number): Promise<void> {
-        return new Promise((resolve, _reject) => {
-            resolve();
+        return new Promise((_resolve, reject) => {
+            reject("error: method not implemented");
         });
     }
 
     public releaseInterface(_interfaceNumber: number): Promise<void> {
-        return new Promise((resolve, _reject) => {
-            resolve();
+        return new Promise((_resolve, reject) => {
+            reject("error: method not implemented");
         });
     }
 
     public selectAlternateInterface(_interfaceNumber: number, _alternateSetting: number): Promise<void> {
-        return new Promise((resolve, _reject) => {
-            resolve();
+        return new Promise((_resolve, reject) => {
+            reject("error: method not implemented");
         });
     }
 
     public controlTransferIn(_setup: USBControlTransferParameters, _length: number): Promise<USBInTransferResult> {
-        return new Promise((resolve, _reject) => {
-            resolve();
+        return new Promise((_resolve, reject) => {
+            reject("error: method not implemented");
         });
     }
 
     public controlTransferOut(_setup: USBControlTransferParameters, _data?: BufferSource): Promise<USBOutTransferResult> {
-        return new Promise((resolve, _reject) => {
-            resolve();
+        return new Promise((_resolve, reject) => {
+            reject("error: method not implemented");
         });
     }
 
     public clearHalt(_direction: USBDirection, _endpointNumber: number): Promise<void> {
-        return new Promise((resolve, _reject) => {
-            resolve();
+        return new Promise((_resolve, reject) => {
+            reject("error: method not implemented");
         });
     }
 
     public transferIn(_endpointNumber: number, _length: number): Promise<USBInTransferResult> {
-        return new Promise((resolve, _reject) => {
-            resolve();
+        return new Promise((_resolve, reject) => {
+            reject("error: method not implemented");
         });
     }
 
     public transferOut(_endpointNumber: number, _data: BufferSource): Promise<USBOutTransferResult> {
-        return new Promise((resolve, _reject) => {
-            resolve();
+        return new Promise((_resolve, reject) => {
+            reject("error: method not implemented");
         });
     }
 
     public isochronousTransferIn(_endpointNumber: number, _packetLengths: Array<number>): Promise<USBIsochronousInTransferResult> {
-        return new Promise((resolve, _reject) => {
-            resolve();
+        return new Promise((_resolve, reject) => {
+            reject("isochronousTransferIn error: method not implemented");
         });
     }
 
     public isochronousTransferOut(_endpointNumber: number, _data: BufferSource, _packetLengths: Array<number>): Promise<USBIsochronousOutTransferResult> {
-        return new Promise((resolve, _reject) => {
-            resolve();
+        return new Promise((_resolve, reject) => {
+            reject("isochronousTransferOut error: method not implemented");
         });
     }
 
     public reset(): Promise<void> {
-        return new Promise((resolve, _reject) => {
-            resolve();
+        return new Promise((_resolve, reject) => {
+            reject("error: method not implemented");
         });
     }
 }

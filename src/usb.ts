@@ -23,28 +23,62 @@
 * SOFTWARE.
 */
 
+import { EventDispatcher } from "./dispatcher";
 import { USBDevice } from "./device";
 import { USBDeviceRequestOptions } from "./interfaces";
 import { adapter } from "./adapter";
 
-export function getDevices(): Promise<Array<USBDevice>> {
-    return new Promise((resolve, _reject) => {
-        adapter.findDevices()
-        .then(foundDevices => {
-            resolve(foundDevices.map(device => new USBDevice(device)));
-        });
-    });
-}
+/**
+ * USB class
+ */
+export class USB extends EventDispatcher {
+    /**
+     * Device Connected event
+     * @event
+     */
+    public static EVENT_DEVICE_CONNECT: string = "connect";
 
-export function requestDevice(_options: USBDeviceRequestOptions): Promise<USBDevice> {
-    return new Promise((resolve, _reject) => {
-        adapter.findDevices()
-        .then(foundDevices => {
-            const devices = foundDevices.map(device => {
-                return new USBDevice(device);
+    /**
+     * Device Disconnected event
+     * @event
+     */
+    public static EVENT_DEVICE_DISCONNECT: string = "disconnect";
+
+    /**
+     * USB constructor
+     * @param init A partial class to initialise values
+     */
+    constructor() {
+        super();
+    }
+
+    /**
+     * Gets all Web USB devices connected to the system
+     * @returns Promise containing an array of devices
+     */
+    public getDevices(): Promise<Array<USBDevice>> {
+        return new Promise((resolve, _reject) => {
+            adapter.findDevices()
+            .then(foundDevices => {
+                resolve(foundDevices.map(device => new USBDevice(device)));
             });
-
-            resolve(devices[0]);
         });
-    });
+    }
+
+    /**
+     * Requests a sungle Web USB device
+     * @returns Promise containing the selected device
+     */
+    public requestDevice(_options: USBDeviceRequestOptions): Promise<USBDevice> {
+        return new Promise((resolve, _reject) => {
+            adapter.findDevices()
+            .then(foundDevices => {
+                const devices = foundDevices.map(device => {
+                    return new USBDevice(device);
+                });
+
+                resolve(devices[0]);
+            });
+        });
+    }
 }

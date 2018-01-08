@@ -216,7 +216,7 @@ export class USBAdapter implements Adapter {
 
                     return this.getWebUrl(device, capability)
                     .then(url => {
-                        const props: Partial<USBDevice> = {
+                        const props: any = {
                             url: url
                         };
 
