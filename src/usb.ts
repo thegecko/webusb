@@ -25,7 +25,7 @@
 
 import { EventDispatcher } from "./dispatcher";
 import { USBDevice } from "./device";
-import { USBDeviceRequestOptions } from "./interfaces";
+import { USBOptions, USBDeviceRequestOptions } from "./interfaces";
 import { adapter } from "./adapter";
 
 /**
@@ -44,12 +44,41 @@ export class USB extends EventDispatcher {
      */
     public static EVENT_DEVICE_DISCONNECT: string = "disconnect";
 
+    private devicesFound: (devices: Array<USBDevice>, selectFn: (device: USBDevice) => void) => USBDevice = null;
+
     /**
      * USB constructor
-     * @param init A partial class to initialise values
+     * @param options USB initialisation options
      */
-    constructor() {
+    constructor(options?: USBOptions) {
         super();
+
+        options = options || {};
+        this.devicesFound = options.devicesFound;
+    }
+
+    private filterDevice(options: USBDeviceRequestOptions, device: USBDevice): boolean {
+        return options.filters.every(filter => {
+            // Vendor
+            if (filter.vendorId && filter.vendorId !== device.vendorId) return;
+
+            // Product
+            if (filter.productId && filter.productId !== device.productId) return;
+
+            // Class
+            if (filter.classCode && filter.classCode !== device.deviceClass) return;
+
+            // Subclass
+            if (filter.subclassCode && filter.subclassCode !== device.deviceSubclass) return;
+
+            // Protocol
+            if (filter.protocolCode && filter.protocolCode !== device.deviceProtocol) return;
+
+            // Serial
+            if (filter.serialnumber && filter.serialnumber !== device.serialNumber) return;
+
+            return true;
+        });
     }
 
     /**
@@ -66,18 +95,43 @@ export class USB extends EventDispatcher {
     }
 
     /**
-     * Requests a sungle Web USB device
+     * Requests a single Web USB device
+     * @param options The options to use when scanning
      * @returns Promise containing the selected device
      */
-    public requestDevice(_options: USBDeviceRequestOptions): Promise<USBDevice> {
-        return new Promise((resolve, _reject) => {
-            adapter.findDevices()
-            .then(foundDevices => {
-                const devices = foundDevices.map(device => {
-                    return new USBDevice(device);
-                });
+    public requestDevice(options: USBDeviceRequestOptions): Promise<USBDevice> {
+        return new Promise((resolve, reject) => {
+            options = options || {
+                filters: []
+            };
 
-                resolve(devices[0]);
+            // Must have a filter
+            if (!options.filters || options.filters.length === 0) {
+                return reject(new TypeError("requestDevice error: no filters specified"));
+            }
+
+            // Don't allow empty filters
+            const emptyFilter = options.filters.some(filter => {
+                return (Object.keys(filter).length === 0);
+            });
+            if (emptyFilter) {
+                return reject(new TypeError("requestDevice error: empty filter specified"));
+            }
+
+            return this.getDevices()
+            .then(devices => {
+                devices = devices.filter(device => this.filterDevice(options, device));
+                // If no deviceFound function, resolve with the first device found
+                if (!this.devicesFound) return resolve(devices[0]);
+
+                function selectFn(device: USBDevice) {
+                    resolve(device);
+                }
+
+                const selectedDevice = this.devicesFound(devices, selectFn.bind(this));
+                if (selectedDevice) resolve(selectedDevice);
+            }).catch(error => {
+                reject(`requestDevice error: ${error}`);
             });
         });
     }

@@ -30,7 +30,7 @@ https://wicg.github.io/webusb/
 ### USB
 
 - [x] getDevices()
-- [ ] requestDevice()
+- [x] requestDevice()
 
 ### USBDevice
 
@@ -74,6 +74,6 @@ https://wicg.github.io/webusb/
 ### Other
 
 - [x] USBDevice.url
-- [ ] Device selector hook
+- [x] Device selector hook
 - [ ] Examples
 - [ ] API Documentation
