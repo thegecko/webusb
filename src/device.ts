@@ -23,7 +23,9 @@
 * SOFTWARE.
 */
 
-import { USBConfiguration, USBDirection, USBControlTransferParameters, USBInTransferResult, USBOutTransferResult, USBIsochronousInTransferResult, USBIsochronousOutTransferResult } from "./interfaces";
+import { USBDirection } from "./enums";
+import { USBConfiguration, USBControlTransferParameters, USBInTransferResult, USBOutTransferResult, USBIsochronousInTransferResult, USBIsochronousOutTransferResult } from "./interfaces";
+import { adapter } from "./adapter";
 
 /**
  * USB Device class
@@ -46,102 +48,118 @@ export class USBDevice {
     public readonly productName: string = null;
     public readonly serialNumber: string = null;
 
-    public readonly configuration?: USBConfiguration;
-    public readonly configurations: Array<USBConfiguration>;
+    public get configuration(): USBConfiguration {
+        return adapter.getConfiguration(this._handle);
+    }
 
-    public readonly opened: boolean = false;
+    public get configurations(): Array<USBConfiguration> {
+        return adapter.getConfigurations(this._handle);
+    }
+
+    public get opened(): boolean {
+        return adapter.getOpened(this._handle);
+    }
 
     public readonly url: string = null;
+
+    /**
+     * @hidden
+     */
+    public readonly _handle: any = null;
 
     /**
      * USB Device constructor
      * @param init A partial class to initialise values
      */
     constructor(init?: Partial<USBDevice>) {
-        Object.assign(this, init);
+        this.usbVersionMajor = init.usbVersionMajor;
+        this.usbVersionMinor = init.usbVersionMinor;
+        this.usbVersionSubminor = init.usbVersionSubminor;
+        this.deviceClass = init.deviceClass;
+        this.deviceSubclass = init.deviceSubclass;
+        this.deviceProtocol = init.deviceProtocol;
+        this.vendorId = init.vendorId;
+        this.productId = init.productId;
+        this.deviceVersionMajor = init.deviceVersionMajor;
+        this.deviceVersionMinor = init.deviceVersionMinor;
+        this.deviceVersionSubminor = init.deviceVersionSubminor;
+
+        this.manufacturerName = init.manufacturerName;
+        this.productName = init.productName;
+        this.serialNumber = init.serialNumber;
+
+        this.url = init.url;
+        this._handle = init._handle;
     }
 
     public open(): Promise<void> {
-        return new Promise((_resolve, reject) => {
-            reject("error: method not implemented");
-        });
+        return adapter.open(this._handle);
     }
 
     public close(): Promise<void> {
-        return new Promise((_resolve, reject) => {
-            reject("error: method not implemented");
-        });
+        return adapter.close(this._handle);
     }
 
-    public selectConfiguration(_configurationValue: number): Promise<void> {
-        return new Promise((_resolve, reject) => {
-            reject("error: method not implemented");
-        });
+    public selectConfiguration(configurationValue: number): Promise<void> {
+        return adapter.selectConfiguration(this._handle, configurationValue);
     }
 
-    public claimInterface(_interfaceNumber: number): Promise<void> {
-        return new Promise((_resolve, reject) => {
-            reject("error: method not implemented");
-        });
+    public claimInterface(interfaceNumber: number): Promise<void> {
+        return adapter.claimInterface(this._handle, interfaceNumber);
     }
 
-    public releaseInterface(_interfaceNumber: number): Promise<void> {
-        return new Promise((_resolve, reject) => {
-            reject("error: method not implemented");
-        });
+    public releaseInterface(interfaceNumber: number): Promise<void> {
+        return adapter.releaseInterface(this._handle, interfaceNumber);
     }
 
-    public selectAlternateInterface(_interfaceNumber: number, _alternateSetting: number): Promise<void> {
-        return new Promise((_resolve, reject) => {
-            reject("error: method not implemented");
-        });
+    public selectAlternateInterface(interfaceNumber: number, alternateSetting: number): Promise<void> {
+        return adapter.selectAlternateInterface(this._handle, interfaceNumber, alternateSetting);
     }
 
-    public controlTransferIn(_setup: USBControlTransferParameters, _length: number): Promise<USBInTransferResult> {
-        return new Promise((_resolve, reject) => {
-            reject("error: method not implemented");
-        });
+    public controlTransferIn(setup: USBControlTransferParameters, length: number): Promise<USBInTransferResult> {
+        return adapter.controlTransferIn(this._handle, setup, length);
     }
 
-    public controlTransferOut(_setup: USBControlTransferParameters, _data?: BufferSource): Promise<USBOutTransferResult> {
-        return new Promise((_resolve, reject) => {
-            reject("error: method not implemented");
-        });
+    public controlTransferOut(setup: USBControlTransferParameters, data?: BufferSource): Promise<USBOutTransferResult> {
+        return adapter.controlTransferOut(this._handle, setup, data);
     }
 
+    public transferIn(endpointNumber: number, length: number): Promise<USBInTransferResult> {
+        return adapter.transferIn(this._handle, endpointNumber, length);
+    }
+
+    public transferOut(endpointNumber: number, data: BufferSource): Promise<USBOutTransferResult> {
+        return adapter.transferOut(this._handle, endpointNumber, data);
+    }
+
+    public reset(): Promise<void> {
+        return adapter.reset(this._handle);
+    }
+
+    /**
+     * @hidden
+     */
     public clearHalt(_direction: USBDirection, _endpointNumber: number): Promise<void> {
         return new Promise((_resolve, reject) => {
             reject("error: method not implemented");
         });
     }
 
-    public transferIn(_endpointNumber: number, _length: number): Promise<USBInTransferResult> {
-        return new Promise((_resolve, reject) => {
-            reject("error: method not implemented");
-        });
-    }
-
-    public transferOut(_endpointNumber: number, _data: BufferSource): Promise<USBOutTransferResult> {
-        return new Promise((_resolve, reject) => {
-            reject("error: method not implemented");
-        });
-    }
-
+    /**
+     * @hidden
+     */
     public isochronousTransferIn(_endpointNumber: number, _packetLengths: Array<number>): Promise<USBIsochronousInTransferResult> {
         return new Promise((_resolve, reject) => {
             reject("isochronousTransferIn error: method not implemented");
         });
     }
 
+    /**
+     * @hidden
+     */
     public isochronousTransferOut(_endpointNumber: number, _data: BufferSource, _packetLengths: Array<number>): Promise<USBIsochronousOutTransferResult> {
         return new Promise((_resolve, reject) => {
             reject("isochronousTransferOut error: method not implemented");
-        });
-    }
-
-    public reset(): Promise<void> {
-        return new Promise((_resolve, reject) => {
-            reject("error: method not implemented");
         });
     }
 }

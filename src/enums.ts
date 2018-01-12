@@ -23,9 +23,29 @@
 * SOFTWARE.
 */
 
-import { USB } from "./usb";
+export enum USBRequestType {
+    standard = 0x00,
+    class = 0x20,
+    vendor = 0x40
+}
 
-/**
- * Default usb instance synonymous with `navigator.usb`
- */
-export = new USB();
+export enum USBRecipient {
+    device = 0x00,
+    interface = 0x01,
+    endpoint = 0x02,
+    other = 0x03
+}
+
+export enum USBTransferStatus {
+    "ok",
+    "stall",
+    "babble"
+}
+
+export type USBDirection = "in" | "out";
+
+export enum USBEndpointType {
+    "bulk",
+    "interrupt",
+    "isochronous"
+}

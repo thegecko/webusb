@@ -48,23 +48,23 @@ https://wicg.github.io/webusb/
 - [x] manufacturerName
 - [x] productName
 - [x] serialNumber
-- [ ] configuration
-- [ ] configurations
-- [ ] opened
-- [ ] open()
-- [ ] close()
-- [ ] selectConfiguration()
-- [ ] claimInterface()
-- [ ] releaseInterface()
-- [ ] selectAlternateInterface()
-- [ ] controlTransferIn()
-- [ ] controlTransferOut()
-- [ ] clearHalt()
-- [ ] transferIn()
-- [ ] transferOut()
-- [ ] isochronousTransferIn() - unsupportd in node-usb
-- [ ] isochronousTransferOut() - unsupportd in node-usb
-- [ ] reset()
+- [x] configuration - endpoints don't appear on alternates
+- [ ] configurations - endpoints don't appear on alternates
+- [x] opened
+- [x] open()
+- [x] close()
+- [x] selectConfiguration()
+- [x] claimInterface()
+- [x] releaseInterface()
+- [x] selectAlternateInterface()
+- [x] controlTransferIn()
+- [x] controlTransferOut()
+- [x] transferIn()
+- [x] transferOut()
+- [x] reset()
+- [ ] clearHalt() - unsupported in node-usb
+- [ ] isochronousTransferIn() - unsupported in node-usb
+- [ ] isochronousTransferOut() - unsupported in node-usb
 
 ### Events
 
