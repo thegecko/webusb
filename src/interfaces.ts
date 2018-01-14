@@ -23,7 +23,7 @@
 * SOFTWARE.
 */
 
-import { USBRequestType, USBRecipient, USBTransferStatus, USBDirection, USBEndpointType } from "./enums";
+import { USBRequestType, USBRecipient, USBTransferStatus } from "./enums";
 import { USBDevice } from "./device";
 
 /**
@@ -85,33 +85,4 @@ export interface USBIsochronousOutTransferPacket {
 
 export interface USBIsochronousOutTransferResult {
     packets: Array<USBIsochronousOutTransferPacket>;
-}
-
-export interface USBConfiguration {
-    configurationValue: number;
-    configurationName?: string;
-    interfaces: Array<USBInterface>;
-}
-
-export interface USBInterface {
-    interfaceNumber: number;
-    alternate: USBAlternateInterface;
-    alternates: Array<USBAlternateInterface>;
-    claimed: boolean;
-}
-
-export interface USBAlternateInterface {
-    alternateSetting: number;
-    interfaceClass: number;
-    interfaceSubclass: number;
-    interfaceProtocol: number;
-    interfaceName?: string;
-    endpoints: Array<USBEndpoint>;
-}
-
-export interface USBEndpoint {
-    endpointNumber: number;
-    direction: USBDirection;
-    type: USBEndpointType;
-    packetSize: number;
 }

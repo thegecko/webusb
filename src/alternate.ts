@@ -23,21 +23,29 @@
 * SOFTWARE.
 */
 
-export enum USBRequestType {
-    standard = 0x00,
-    class = 0x20,
-    vendor = 0x40
+import { USBEndpoint } from "./endpoint";
+
+/**
+ * USB Alternate Interface class
+ */
+export class USBAlternateInterface {
+
+    public readonly alternateSetting: number = null;
+    public readonly interfaceClass: number = null;
+    public readonly interfaceSubclass: number = null;
+    public readonly interfaceProtocol: number = null;
+    public readonly interfaceName?: string = null;
+    public readonly endpoints: Array<USBEndpoint> = [];
+
+    /**
+     * @hidden
+     */
+    constructor(init?: Partial<USBAlternateInterface>) {
+        this.alternateSetting = init.alternateSetting;
+        this.interfaceClass = init.interfaceClass;
+        this.interfaceSubclass = init.interfaceSubclass;
+        this.interfaceProtocol = init.interfaceProtocol;
+        this.interfaceName = init.interfaceName;
+        this.endpoints = init.endpoints;
+    }
 }
-
-export enum USBRecipient {
-    device = 0x00,
-    interface = 0x01,
-    endpoint = 0x02,
-    other = 0x03
-}
-
-export type USBTransferStatus = "ok" | "stall" | "babble";
-
-export type USBDirection = "in" | "out";
-
-export type USBEndpointType = "bulk" | "interrupt" | "isochronous";

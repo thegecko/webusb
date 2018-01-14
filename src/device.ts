@@ -24,7 +24,8 @@
 */
 
 import { USBDirection } from "./enums";
-import { USBConfiguration, USBControlTransferParameters, USBInTransferResult, USBOutTransferResult, USBIsochronousInTransferResult, USBIsochronousOutTransferResult } from "./interfaces";
+import { USBControlTransferParameters, USBInTransferResult, USBOutTransferResult, USBIsochronousInTransferResult, USBIsochronousOutTransferResult } from "./interfaces";
+import { USBConfiguration } from "./configuration";
 import { adapter } from "./adapter";
 
 /**
@@ -48,12 +49,18 @@ export class USBDevice {
     public readonly productName: string = null;
     public readonly serialNumber: string = null;
 
-    public get configuration(): USBConfiguration {
-        return adapter.getConfiguration(this._handle);
+    private _configurations: Array<USBConfiguration> = [];
+    public get configurations(): Array<USBConfiguration> {
+        return this._configurations;
     }
 
-    public get configurations(): Array<USBConfiguration> {
-        return adapter.getConfigurations(this._handle);
+    /**
+     * @hidden
+     */
+    public _currentConfiguration: number = null;
+
+    public get configuration(): USBConfiguration {
+        return this.configurations.find(configuration => configuration.configurationValue === this._currentConfiguration);
     }
 
     public get opened(): boolean {
@@ -68,8 +75,7 @@ export class USBDevice {
     public readonly _handle: string = null;
 
     /**
-     * USB Device constructor
-     * @param init A partial class to initialise values
+     * @hidden
      */
     constructor(init?: Partial<USBDevice>) {
         this.usbVersionMajor = init.usbVersionMajor;
@@ -88,8 +94,11 @@ export class USBDevice {
         this.productName = init.productName;
         this.serialNumber = init.serialNumber;
 
+        this._configurations = init.configurations;
+
         this.url = init.url;
         this._handle = init._handle;
+        this._currentConfiguration = init._currentConfiguration;
     }
 
     public open(): Promise<void> {
@@ -101,19 +110,26 @@ export class USBDevice {
     }
 
     public selectConfiguration(configurationValue: number): Promise<void> {
-        return adapter.selectConfiguration(this._handle, configurationValue);
-    }
-
-    public claimInterface(interfaceNumber: number): Promise<void> {
-        return adapter.claimInterface(this._handle, interfaceNumber);
-    }
-
-    public releaseInterface(interfaceNumber: number): Promise<void> {
-        return adapter.releaseInterface(this._handle, interfaceNumber);
+        return adapter.selectConfiguration(this._handle, configurationValue)
+        .then(() => {
+            this._currentConfiguration = configurationValue;
+            this.configuration.interfaces.forEach(iface => iface.reset());
+        });
     }
 
     public selectAlternateInterface(interfaceNumber: number, alternateSetting: number): Promise<void> {
-        return adapter.selectAlternateInterface(this._handle, interfaceNumber, alternateSetting);
+        const iface = this.configuration.interfaces.find(usbInterface => usbInterface.interfaceNumber === interfaceNumber);
+        return iface.selectAlternateInterface(alternateSetting);
+    }
+
+    public claimInterface(interfaceNumber: number): Promise<void> {
+        const iface = this.configuration.interfaces.find(usbInterface => usbInterface.interfaceNumber === interfaceNumber);
+        return iface.claimInterface();
+    }
+
+    public releaseInterface(interfaceNumber: number): Promise<void> {
+        const iface = this.configuration.interfaces.find(usbInterface => usbInterface.interfaceNumber === interfaceNumber);
+        return iface.releaseInterface();
     }
 
     public controlTransferIn(setup: USBControlTransferParameters, length: number): Promise<USBInTransferResult> {

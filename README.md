@@ -50,8 +50,8 @@ https://wicg.github.io/webusb/
 - [x] manufacturerName
 - [x] productName
 - [x] serialNumber
-- [x] configuration - endpoints don't appear on alternates
-- [ ] configurations - endpoints don't appear on alternates
+- [x] configuration
+- [x] configurations
 - [x] opened
 - [x] open()
 - [x] close()
