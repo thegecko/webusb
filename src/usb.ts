@@ -26,7 +26,7 @@
 import { EventDispatcher } from "./dispatcher";
 import { USBDevice } from "./device";
 import { USBOptions, USBDeviceRequestOptions } from "./interfaces";
-import { adapter } from "./adapter";
+import { USBAdapter, adapter } from "./adapter";
 
 /**
  * USB class
@@ -44,6 +44,7 @@ export class USB extends EventDispatcher {
      */
     public static EVENT_DEVICE_DISCONNECT: string = "disconnect";
 
+    private devices: { [key: string]: USBDevice } = {};
     private devicesFound: (devices: Array<USBDevice>, selectFn: (device: USBDevice) => void) => USBDevice = null;
 
     /**
@@ -55,6 +56,18 @@ export class USB extends EventDispatcher {
 
         options = options || {};
         this.devicesFound = options.devicesFound;
+
+        adapter.addListener(USBAdapter.EVENT_DEVICE_CONNECT, device => {
+            this.devices[device._handle] = device;
+            this.emit(USB.EVENT_DEVICE_CONNECT, device);
+        });
+
+        adapter.addListener(USBAdapter.EVENT_DEVICE_DISCONNECT, handle => {
+            if (this.devices[handle]) {
+                this.emit(USB.EVENT_DEVICE_DISCONNECT, this.devices[handle]);
+                delete this.devices[handle];
+            }
+        });
     }
 
     private filterDevice(options: USBDeviceRequestOptions, device: USBDevice): boolean {
@@ -86,11 +99,10 @@ export class USB extends EventDispatcher {
      * @returns Promise containing an array of devices
      */
     public getDevices(): Promise<Array<USBDevice>> {
-        return new Promise((resolve, _reject) => {
-            adapter.findDevices()
-            .then(foundDevices => {
-                resolve(foundDevices.map(device => new USBDevice(device)));
-            });
+        return adapter.getUSBDevices()
+        .then(devices => {
+            devices.forEach(device => this.devices[device._handle] = device);
+            return devices;
         });
     }
 

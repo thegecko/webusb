@@ -65,7 +65,7 @@ export class USBDevice {
     /**
      * @hidden
      */
-    public readonly _handle: any = null;
+    public readonly _handle: string = null;
 
     /**
      * USB Device constructor
@@ -139,27 +139,21 @@ export class USBDevice {
     /**
      * @hidden
      */
-    public clearHalt(_direction: USBDirection, _endpointNumber: number): Promise<void> {
-        return new Promise((_resolve, reject) => {
-            reject("error: method not implemented");
-        });
+    public clearHalt(direction: USBDirection, endpointNumber: number): Promise<void> {
+        return adapter.clearHalt(this._handle, direction, endpointNumber);
     }
 
     /**
      * @hidden
      */
-    public isochronousTransferIn(_endpointNumber: number, _packetLengths: Array<number>): Promise<USBIsochronousInTransferResult> {
-        return new Promise((_resolve, reject) => {
-            reject("isochronousTransferIn error: method not implemented");
-        });
+    public isochronousTransferIn(endpointNumber: number, packetLengths: Array<number>): Promise<USBIsochronousInTransferResult> {
+        return adapter.isochronousTransferIn(this._handle, endpointNumber, packetLengths);
     }
 
     /**
      * @hidden
      */
-    public isochronousTransferOut(_endpointNumber: number, _data: BufferSource, _packetLengths: Array<number>): Promise<USBIsochronousOutTransferResult> {
-        return new Promise((_resolve, reject) => {
-            reject("isochronousTransferOut error: method not implemented");
-        });
+    public isochronousTransferOut(endpointNumber: number, data: BufferSource, packetLengths: Array<number>): Promise<USBIsochronousOutTransferResult> {
+        return adapter.isochronousTransferOut(this._handle, endpointNumber, data, packetLengths);
     }
 }

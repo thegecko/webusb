@@ -23,9 +23,33 @@
 * SOFTWARE.
 */
 
+var path = require("path");
+var exec = require("child_process").exec;
 var usb = require('../');
+
+function openUrl(url) {
+    console.log(`Device found, opening url: ${url}`);
+
+    var cmd = path.join(__dirname, "xdg-open");
+    if (process.platform === "darwin") cmd = "open";
+    else if (process.platform === "win32") cmd = `start ""`;
+
+    exec(`${cmd} ${url}`);
+}
+
+console.log("Searching for Web USB devices...");
 
 usb.getDevices()
 .then(devices => {
-    devices.forEach(device => console.log(device));
+    devices.forEach(device => {
+        if (device.url) openUrl(device.url);
+    });
+});
+
+usb.addEventListener("connect", device => {
+    if (device.url) openUrl(device.url);
+});
+
+usb.addEventListener("disconnect", device => {
+    if (device.url) console.log(`Device disconnected with url: ${device.url}`);
 });

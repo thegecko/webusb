@@ -2,6 +2,8 @@
 Node.js implementation of the WebUSB Specification
 
 [![Circle CI](https://circleci.com/gh/thegecko/webusb.svg?style=shield)](https://circleci.com/gh/thegecko/webusb/)
+[![npm](https://img.shields.io/npm/dm/webusb.svg)](https://www.npmjs.com/package/webusb)
+[![Licence MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](http://opensource.org/licenses/MIT)
 
 ## Prerequisites
 
@@ -68,8 +70,8 @@ https://wicg.github.io/webusb/
 
 ### Events
 
-- [ ] connect
-- [ ] disconnect
+- [x] connect
+- [x] disconnect
 
 ### Other
 
