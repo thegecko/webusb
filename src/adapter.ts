@@ -244,14 +244,30 @@ export class USBAdapter extends EventEmitter {
         });
 
         const webCapability = platformCapabilities.find(capability => {
+            const uuid = this.decodeUUID(capability.data.slice(1, 17));
             const version = capability.data.readUInt16LE(17);
-            return version === 256;
-
-            // var uuid = unparse(data, 1);//.readUInt16LE(1);
-            // console.log(uuid); // {3408b638-09a9-47a0-8bfd-a0768815b665}
+            return uuid === "3408b638-09a9-47a0-8bfd-a0768815b665" && version === 0x0100;
         });
 
         return webCapability;
+    }
+
+    private decodeUUID(buffer: Buffer): string {
+        const data1 = `00000000${buffer.readUInt32LE(0).toString(16)}`.slice(-8);
+        const data2 = `0000${buffer.readUInt16LE(4).toString(16)}`.slice(-4);
+        const data3 = `0000${buffer.readUInt16LE(6).toString(16)}`.slice(-4);
+
+        const data4 = [];
+        for (let i = 8; i < 10; i ++) {
+            data4.push(`00${buffer.readUInt8(i).toString(16)}`.slice(-2));
+        }
+
+        const data5 = [];
+        for (let i = 10; i < 16; i ++) {
+            data5.push(`00${buffer.readUInt8(i).toString(16)}`.slice(-2));
+        }
+
+        return `${data1}-${data2}-${data3}-${data4.join("")}-${data5.join("")}`;
     }
 
     private getWebUrl(device: Device, capability: any): Promise<string> {
