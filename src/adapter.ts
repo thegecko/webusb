@@ -302,9 +302,7 @@ export class USBAdapter extends EventEmitter {
         return new Promise((resolve, _reject) => {
             const device = this.devices[handle].device;
             const url = this.devices[handle].url;
-
-            // tslint:disable-next-line:no-string-literal
-            const configs: Array<ConfigDescriptor> = device["allConfigDescriptors"];
+            const configs: Array<ConfigDescriptor> = device.allConfigDescriptors;
 
             return this.serialDevicePromises(this.configToUSBConfiguration, device, configs)
             .then(configurations => {
@@ -438,8 +436,7 @@ export class USBAdapter extends EventEmitter {
                 interfaceSubclass: descriptor.bInterfaceSubClass,
                 interfaceProtocol: descriptor.bInterfaceProtocol,
                 interfaceName: name,
-                // tslint:disable-next-line:no-string-literal
-                endpoints: descriptor["endpoints"].map(this.endpointToUSBEndpoint)
+                endpoints: descriptor.endpoints.map(this.endpointToUSBEndpoint)
             });
         });
     }
@@ -458,8 +455,7 @@ export class USBAdapter extends EventEmitter {
     private configToUSBConfiguration(device: Device, descriptor: ConfigDescriptor): Promise<USBConfiguration> {
         return this.getStringDescriptor(device, descriptor.iConfiguration)
         .then(name => {
-            // tslint:disable-next-line:no-string-literal
-            const allInterfaces: Array<Array<InterfaceDescriptor>> = descriptor["interfaces"] || [];
+            const allInterfaces = descriptor.interfaces || [];
 
             return this.serialDevicePromises(this.interfacesToUSBInterface, device, allInterfaces)
             .then(interfaces => {
@@ -473,6 +469,7 @@ export class USBAdapter extends EventEmitter {
     }
 
     private getDevice(handle: string): Device {
+        if (!this.devices[handle]) return null;
         return this.devices[handle].device;
     }
 
@@ -484,16 +481,20 @@ export class USBAdapter extends EventEmitter {
     }
 
     public open(handle: string): Promise<void> {
-        return new Promise((resolve, _reject) => {
+        return new Promise((resolve, reject) => {
             const device = this.getDevice(handle);
+            if (!device) return reject("device not found");
+
             device.open();
             resolve();
         });
     }
 
     public close(handle: string): Promise<void> {
-        return new Promise((resolve, _reject) => {
+        return new Promise((resolve, reject) => {
             const device = this.getDevice(handle);
+            if (!device) return reject("device not found");
+
             device.close();
             resolve();
         });
@@ -501,12 +502,15 @@ export class USBAdapter extends EventEmitter {
 
     public getOpened(handle: string): boolean {
         const device = this.getDevice(handle);
+        if (!device) return false;
         return (device.interfaces !== null);
     }
 
     public selectConfiguration(handle: string, id: number): Promise<void> {
         return new Promise((resolve, reject) => {
             const device = this.getDevice(handle);
+            if (!device) return reject("device not found");
+
             device.setConfiguration(id, error => {
                 if (error) return reject(error);
                 resolve();
@@ -515,8 +519,10 @@ export class USBAdapter extends EventEmitter {
     }
 
     public claimInterface(handle: string, address: number): Promise<void> {
-        return new Promise((resolve, _reject) => {
+        return new Promise((resolve, reject) => {
             const device = this.getDevice(handle);
+            if (!device) return reject("device not found");
+
             device.interface(address).claim();
             resolve();
         });
@@ -525,8 +531,9 @@ export class USBAdapter extends EventEmitter {
     public releaseInterface(handle: string, address: number): Promise<void> {
         return new Promise((resolve, reject) => {
             const device = this.getDevice(handle);
-            // device.interface(address).release(true, error => {
-            device.interface(address).release(error => {
+            if (!device) return reject("device not found");
+
+            device.interface(address).release(true, error => {
                 if (error) return reject(error);
                 resolve();
             });
@@ -555,7 +562,7 @@ export class USBAdapter extends EventEmitter {
                 if (error) return reject(error);
                 resolve({
                     data: this.bufferToDataView(buffer),
-                    status: "ok"
+                    status: "ok" // hack
                 });
             });
         });
@@ -570,8 +577,8 @@ export class USBAdapter extends EventEmitter {
             device.controlTransfer(type, setup.request, setup.value, setup.index, buffer, error => {
                 if (error) return reject(error);
                 resolve({
-                    bytesWritten: buffer.byteLength,
-                    status: "ok"
+                    bytesWritten: buffer.byteLength, // hack, should be bytes actually written
+                    status: "ok" // hack
                 });
             });
         });
@@ -586,7 +593,7 @@ export class USBAdapter extends EventEmitter {
                 if (error) return reject(error);
                 resolve({
                     data: this.bufferToDataView(data),
-                    status: "ok"
+                    status: "ok" // hack
                 });
             });
         });
@@ -601,8 +608,8 @@ export class USBAdapter extends EventEmitter {
             endpoint.transfer(buffer, error => {
                 if (error) return reject(error);
                 resolve({
-                    bytesWritten: buffer.byteLength, // hack
-                    status: "ok"
+                    bytesWritten: buffer.byteLength, // hack, should be bytes actually written
+                    status: "ok" // hack
                 });
             });
         });

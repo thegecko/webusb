@@ -59,14 +59,14 @@ https://wicg.github.io/webusb/
 - [x] claimInterface()
 - [x] releaseInterface()
 - [x] selectAlternateInterface()
-- [x] controlTransferIn()
-- [x] controlTransferOut()
-- [x] transferIn()
-- [x] transferOut()
+- [x] controlTransferIn() - always returns `status` "ok"
+- [x] controlTransferOut() - always returns `status` "ok", `bytesWritten` always equals the initial buffer length
+- [x] transferIn() - always returns `status` "ok"
+- [x] transferOut() - always returns `status` "ok", `bytesWritten` always equals the initial buffer length
 - [x] reset()
-- [ ] clearHalt() - unsupported in node-usb
-- [ ] isochronousTransferIn() - unsupported in node-usb
-- [ ] isochronousTransferOut() - unsupported in node-usb
+- [ ] clearHalt() - currently unsupported in node-usb
+- [ ] isochronousTransferIn() - currently unsupported in node-usb
+- [ ] isochronousTransferOut() - currently unsupported in node-usb
 
 ### Events
 
@@ -77,5 +77,5 @@ https://wicg.github.io/webusb/
 
 - [x] USBDevice.url
 - [x] Device selector hook
-- [ ] Examples
 - [ ] API Documentation
+- [ ] Examples
