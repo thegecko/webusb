@@ -186,7 +186,7 @@ export class USB extends EventDispatcher {
 
             if (!check) return;
 
-            return adapter.getUSBDevices()
+            return adapter.listUSBDevices()
             .then(devices => {
                 devices = devices.filter(device => this.filterDevice(options, device));
 
@@ -195,17 +195,17 @@ export class USB extends EventDispatcher {
                 }
 
                 function selectFn(device: USBDevice) {
-                    if (!this.replaceAllowedDevice(device)) this.devices.push(device);
+                    if (!this.replaceAllowedDevice(device)) this.allowedDevices.push(device);
                     resolve(device);
                 }
 
                 // If no deviceFound function, select the first device found
-                if (!this.devicesFound) selectFn(devices[0]);
+                if (!this.devicesFound) return selectFn.call(this, devices[0]);
 
                 const selectedDevice = this.devicesFound(devices, selectFn.bind(this));
-                if (selectedDevice) selectFn(selectedDevice);
+                if (selectedDevice) selectFn.call(this, selectedDevice);
             }).catch(error => {
-                reject(`requestDevice error: ${error}`);
+                reject(new Error(`requestDevice error: ${error}`));
             });
         });
     }

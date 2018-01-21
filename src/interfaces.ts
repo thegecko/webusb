@@ -68,21 +68,33 @@ export interface USBOutTransferResult {
     status: USBTransferStatus;
 }
 
+/**
+ * @hidden
+ */
 export interface USBIsochronousInTransferPacket {
     data?: DataView;
     status: USBTransferStatus;
 }
 
+/**
+ * @hidden
+ */
 export interface USBIsochronousInTransferResult {
     data?: DataView;
     packets: Array<USBIsochronousInTransferPacket>;
 }
 
+/**
+ * @hidden
+ */
 export interface USBIsochronousOutTransferPacket {
     bytesWritten: number;
     status: USBTransferStatus;
 }
 
+/**
+ * @hidden
+ */
 export interface USBIsochronousOutTransferResult {
     packets: Array<USBIsochronousOutTransferPacket>;
 }

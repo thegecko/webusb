@@ -23,10 +23,24 @@
 * SOFTWARE.
 */
 
-import { USBDirection } from "./enums";
-import { USBControlTransferParameters, USBInTransferResult, USBOutTransferResult, USBIsochronousInTransferResult, USBIsochronousOutTransferResult } from "./interfaces";
+import { LIBUSB_ENDPOINT_IN } from "usb";
+import { USBDirection, USBRecipient } from "./enums";
+import {
+    USBControlTransferParameters,
+    USBInTransferResult,
+    USBOutTransferResult,
+    USBIsochronousInTransferResult,
+    USBIsochronousOutTransferResult
+} from "./interfaces";
 import { USBConfiguration } from "./configuration";
+import { USBInterface } from "./interface";
+import { USBEndpoint } from "./endpoint";
 import { adapter } from "./adapter";
+
+interface EndpointResult {
+    endpoint: USBEndpoint;
+    iface: USBInterface;
+}
 
 /**
  * USB Device class
@@ -123,6 +137,13 @@ export class USBDevice {
     }
 
     /**
+     * @hidden
+     */
+    public get connected(): boolean {
+        return adapter.getConnected(this._handle);
+    }
+
+    /**
      * A flag indicating whether the device is open
      */
     public get opened(): boolean {
@@ -133,6 +154,11 @@ export class USBDevice {
      * URL advertised by the device (not part of Web USB specification)
      */
     public readonly url: string = null;
+
+    /**
+     * @hidden
+     */
+    public readonly _maxPacketSize: number = 0;
 
     /**
      * @hidden
@@ -162,8 +188,45 @@ export class USBDevice {
         this._configurations = init.configurations;
 
         this.url = init.url;
+        this._maxPacketSize = init._maxPacketSize;
         this._handle = init._handle;
         this._currentConfiguration = init._currentConfiguration;
+    }
+
+    private getEndpoint(direction: string, endpointNumber: number): EndpointResult {
+        let endpoint = null;
+        let iface = null;
+
+        this.configuration.interfaces.some(usbInterface => {
+            iface = usbInterface.alternate;
+            endpoint = iface.endpoints.find(usbEndpoint => {
+                return (usbEndpoint.endpointNumber === endpointNumber && usbEndpoint.direction === direction);
+            });
+
+            return endpoint;
+        });
+
+        return {
+            endpoint: endpoint,
+            iface: iface
+        };
+    }
+
+    private setupInvalid(setup: USBControlTransferParameters): string {
+        if (setup.recipient & USBRecipient.interface) {
+            const interfaceNumber = setup.index & 0xff; // lower 8 bits
+            const iface = this.configuration.interfaces.find(usbInterface => usbInterface.interfaceNumber === interfaceNumber);
+            if (!iface) return "interface not found";
+            if (!iface.claimed) return "invalid state";
+
+        } else if (setup.recipient & USBRecipient.endpoint) {
+            const endpointNumber = setup.index & 0x0f; // lower 4 bits
+            const direction = setup.index & LIBUSB_ENDPOINT_IN ? "in" : "out";
+
+            const result = this.getEndpoint(direction, endpointNumber);
+            if (!result.endpoint) return "endpoint not found";
+            if (!result.iface.claimed) return "invalid state";
+        }
     }
 
     /**
@@ -171,9 +234,14 @@ export class USBDevice {
      */
     public open(): Promise<void> {
         return new Promise((resolve, reject) => {
-            if (adapter.getOpened(this._handle)) return resolve();
-            return adapter.open(this._handle)
-            .catch(error => reject(error));
+            if (!this.connected) return reject(new Error("open error: device not found"));
+            if (this.opened) return resolve();
+
+            adapter.open(this._handle)
+            .then(resolve)
+            .catch(error => {
+                reject(new Error(`open error: ${error}`));
+            });
         });
     }
 
@@ -182,9 +250,14 @@ export class USBDevice {
      */
     public close(): Promise<void> {
         return new Promise((resolve, reject) => {
-            if (!adapter.getOpened(this._handle)) return resolve();
-            return adapter.close(this._handle)
-            .catch(error => reject(error));
+            if (!this.connected) return reject(new Error("close error: device not found"));
+            if (!this.opened) return resolve();
+
+            adapter.close(this._handle)
+            .then(resolve)
+            .catch(error => {
+                reject(new Error(`close error: ${error}`));
+            });
         });
     }
 
@@ -195,15 +268,21 @@ export class USBDevice {
      */
     public selectConfiguration(configurationValue: number): Promise<void> {
         return new Promise((resolve, reject) => {
+            if (!this.connected) return reject(new Error("selectConfiguration error: device not found"));
+
             const config =  this.configurations.find(configuration => configuration.configurationValue === configurationValue);
-            if (!config) return reject("selectConfiguration error: configuration not found");
-            if (!this.opened) return reject("selectConfiguration error: invalid state");
+            if (!config) return reject(new Error("selectConfiguration error: configuration not found"));
+
+            if (!this.opened) return reject(new Error("selectConfiguration error: invalid state"));
 
             adapter.selectConfiguration(this._handle, configurationValue)
             .then(() => {
                 this._currentConfiguration = configurationValue;
                 this.configuration.interfaces.forEach(iface => iface.reset());
                 resolve();
+            })
+            .catch(error => {
+                reject(new Error(`selectConfiguration error: ${error}`));
             });
         });
     }
@@ -215,12 +294,18 @@ export class USBDevice {
      */
     public claimInterface(interfaceNumber: number): Promise<void> {
         return new Promise((resolve, reject) => {
-            const iface = this.configuration.interfaces.find(usbInterface => usbInterface.interfaceNumber === interfaceNumber);
-            if (!iface) return reject("claimInterface error: interface not found");
-            if (!this.opened || iface.claimed) return reject("claimInterface error: invalid state");
+            if (!this.connected) return reject(new Error("claimInterface error: device not found"));
 
-            return iface.claimInterface()
-            .then(() => resolve);
+            const iface = this.configuration.interfaces.find(usbInterface => usbInterface.interfaceNumber === interfaceNumber);
+            if (!iface) return reject(new Error("claimInterface error: interface not found"));
+
+            if (!this.opened || iface.claimed) return reject(new Error("claimInterface error: invalid state"));
+
+            iface.claimInterface()
+            .then(resolve)
+            .catch(error => {
+                reject(new Error(`claimInterface error: ${error}`));
+            });
         });
     }
 
@@ -231,12 +316,18 @@ export class USBDevice {
      */
     public releaseInterface(interfaceNumber: number): Promise<void> {
         return new Promise((resolve, reject) => {
-            const iface = this.configuration.interfaces.find(usbInterface => usbInterface.interfaceNumber === interfaceNumber);
-            if (!iface) return reject("releaseInterface error: interface not found");
-            if (!this.opened || !iface.claimed) return reject("releaseInterface error: invalid state");
+            if (!this.connected) return reject(new Error("releaseInterface error: device not found"));
 
-            return iface.releaseInterface()
-            .then(() => resolve);
+            const iface = this.configuration.interfaces.find(usbInterface => usbInterface.interfaceNumber === interfaceNumber);
+            if (!iface) return reject(new Error("releaseInterface error: interface not found"));
+
+            if (!this.opened || !iface.claimed) return reject(new Error("releaseInterface error: invalid state"));
+
+            iface.releaseInterface()
+            .then(resolve)
+            .catch(error => {
+                reject(new Error(`releaseInterface error: ${error}`));
+            });
         });
     }
 
@@ -248,57 +339,213 @@ export class USBDevice {
      */
     public selectAlternateInterface(interfaceNumber: number, alternateSetting: number): Promise<void> {
         return new Promise((resolve, reject) => {
-            const iface = this.configuration.interfaces.find(usbInterface => usbInterface.interfaceNumber === interfaceNumber);
-            if (!iface) return reject("selectAlternateInterface error: interface not found");
-            if (!this.opened || !iface.claimed) return reject("selectAlternateInterface error: invalid state");
+            if (!this.connected) return reject(new Error("selectAlternateInterface error: device not found"));
 
-            return iface.selectAlternateInterface(alternateSetting)
-            .then(() => resolve);
+            const iface = this.configuration.interfaces.find(usbInterface => usbInterface.interfaceNumber === interfaceNumber);
+            if (!iface) return reject(new Error("selectAlternateInterface error: interface not found"));
+
+            if (!this.opened || !iface.claimed) return reject(new Error("selectAlternateInterface error: invalid state"));
+
+            iface.selectAlternateInterface(alternateSetting)
+            .then(resolve)
+            .catch(error => {
+                reject(new Error(`selectAlternateInterface error: ${error}`));
+            });
         });
     }
 
-    // mention hacks
+    /**
+     * Undertake a control transfer in from the device
+     *
+     * __Note:__ The transfer result currently has a status always set to "ok"
+     *
+     * @param setup The USB control transfer parameters
+     * @param length The amount of data to transfer
+     * @returns Promise containing a result
+     */
     public controlTransferIn(setup: USBControlTransferParameters, length: number): Promise<USBInTransferResult> {
-        return adapter.controlTransferIn(this._handle, setup, length);
-    }
+        return new Promise((resolve, reject) => {
+            if (!this.connected) return reject(new Error("controlTransferIn error: device not found"));
+            if (!this.opened) return reject(new Error("controlTransferIn error: invalid state"));
 
-    // mention hacks
-    public controlTransferOut(setup: USBControlTransferParameters, data?: BufferSource): Promise<USBOutTransferResult> {
-        return adapter.controlTransferOut(this._handle, setup, data);
-    }
+            const setupError = this.setupInvalid(setup);
+            if (setupError) return reject(new Error(`controlTransferIn error: ${setupError}`));
 
-    // mention hacks
-    public transferIn(endpointNumber: number, length: number): Promise<USBInTransferResult> {
-        return adapter.transferIn(this._handle, endpointNumber, length);
-    }
+            if (length > this._maxPacketSize) return reject(new Error("controlTransferIn error: length exceeds the maximum packet size"));
 
-    // mention hacks
-    public transferOut(endpointNumber: number, data: BufferSource): Promise<USBOutTransferResult> {
-        return adapter.transferOut(this._handle, endpointNumber, data);
-    }
-
-    public reset(): Promise<void> {
-        return adapter.reset(this._handle);
+            adapter.controlTransferIn(this._handle, setup, length)
+            .then(resolve)
+            .catch(error => {
+                reject(new Error(`controlTransferIn error: ${error}`));
+            });
+        });
     }
 
     /**
-     * @hidden
+     * Undertake a control transfer out to the device
+     *
+     * __Note:__ The transfer result currently has a status always set to "ok" and the bytesWritten always set to the length of the data
+     *
+     * @param setup The USB control transfer parameters
+     * @param data The data to transfer
+     * @returns Promise containing a result
+     */
+    public controlTransferOut(setup: USBControlTransferParameters, data?: BufferSource): Promise<USBOutTransferResult> {
+        return new Promise((resolve, reject) => {
+            if (!this.connected) return reject(new Error("controlTransferOut error: device not found"));
+            if (!this.opened) return reject(new Error("controlTransferOut error: invalid state"));
+
+            const setupError = this.setupInvalid(setup);
+            if (setupError) return reject(new Error(`controlTransferOut error: ${setupError}`));
+
+            if (data.byteLength > this._maxPacketSize) return reject(new Error("controlTransferOut error: length exceeds the maximum packet size"));
+
+            adapter.controlTransferOut(this._handle, setup, data)
+            .then(resolve)
+            .catch(error => {
+                reject(new Error(`controlTransferOut error: ${error}`));
+            });
+        });
+    }
+
+    /**
+     * Clear a halt condition on an endpoint
+     *
+     * @param direction The direction of the endpoint to clear
+     * @param endpointNumber The endpoint number of the endpoint to clear
+     * @returns Promise containing any error
      */
     public clearHalt(direction: USBDirection, endpointNumber: number): Promise<void> {
-        return adapter.clearHalt(this._handle, direction, endpointNumber);
+        return new Promise((resolve, reject) => {
+            if (!this.connected) return reject(new Error("clearHalt error: device not found"));
+
+            const result = this.getEndpoint(direction, endpointNumber);
+            if (!result.endpoint) return reject(new Error("clearHalt error: endpoint not found"));
+            if (!this.opened || !result.iface.claimed) return reject(new Error("clearHalt error: invalid state"));
+
+            adapter.clearHalt(this._handle, endpointNumber)
+            .then(resolve)
+            .catch(error => {
+                reject(new Error(`clearHalt error: ${error}`));
+            });
+        });
+    }
+
+    /**
+     * Undertake a transfer in from the device
+     *
+     * __Note:__ The transfer result currently has a status always set to "ok"
+     *
+     * @param endpointNumber The number of the endpoint to transfer from
+     * @param length The amount of data to transfer
+     * @returns Promise containing a result
+     */
+    public transferIn(endpointNumber: number, length: number): Promise<USBInTransferResult> {
+        return new Promise((resolve, reject) => {
+            if (!this.connected) return reject(new Error("transferIn error: device not found"));
+
+            const result = this.getEndpoint("in", endpointNumber);
+            if (!result.endpoint) return reject(new Error("transferIn error: endpoint not found"));
+            if (result.endpoint.type !== "interrupt" && result.endpoint.type !== "bulk") return reject(new Error("transferIn error: invalid access"));
+            if (!this.opened || !result.iface.claimed) return reject(new Error("transferIn error: invalid state"));
+
+            adapter.transferIn(this._handle, endpointNumber, length)
+            .then(resolve)
+            .catch(error => {
+                reject(new Error(`transferIn error: ${error}`));
+            });
+        });
+    }
+
+    /**
+     * Undertake a transfer out to the device
+     *
+     * __Note:__ The transfer result currently has a status always set to "ok" and the bytesWritten always set to the length of the data
+     *
+     * @param endpointNumber The number of the endpoint to transfer to
+     * @param data The data to transfer
+     * @returns Promise containing a result
+     */
+    public transferOut(endpointNumber: number, data: BufferSource): Promise<USBOutTransferResult> {
+        return new Promise((resolve, reject) => {
+            if (!this.connected) return reject(new Error("transferOut error: device not found"));
+
+            const result = this.getEndpoint("out", endpointNumber);
+            if (!result.endpoint) return reject(new Error("transferOut error: endpoint not found"));
+            if (result.endpoint.type !== "interrupt" && result.endpoint.type !== "bulk") return reject(new Error("transferOut error: invalid access"));
+            if (!this.opened || !result.iface.claimed) return reject(new Error("transferOut error: invalid state"));
+
+            adapter.transferOut(this._handle, endpointNumber, data)
+            .then(resolve)
+            .catch(error => {
+                reject(new Error(`transferOut error: ${error}`));
+            });
+        });
     }
 
     /**
      * @hidden
+     * Undertake an isochronous transfer in from the device
+     * @param endpointNumber The number of the endpoint to transfer from
+     * @param packetLengths An array of packet lengths outlining the amount to transfer
+     * @returns Promise containing a result
      */
     public isochronousTransferIn(endpointNumber: number, packetLengths: Array<number>): Promise<USBIsochronousInTransferResult> {
-        return adapter.isochronousTransferIn(this._handle, endpointNumber, packetLengths);
+        return new Promise((resolve, reject) => {
+            if (!this.connected) return reject(new Error("isochronousTransferIn error: device not found"));
+
+            const result = this.getEndpoint("in", endpointNumber);
+            if (!result.endpoint) return reject(new Error("isochronousTransferIn error: endpoint not found"));
+            if (result.endpoint.type !== "isochronous") return reject(new Error("isochronousTransferIn error: invalid access"));
+            if (!this.opened || !result.iface.claimed) return reject(new Error("isochronousTransferIn error: invalid state"));
+
+            adapter.isochronousTransferIn(this._handle, endpointNumber, packetLengths)
+            .then(resolve)
+            .catch(error => {
+                reject(new Error(`isochronousTransferIn error: ${error}`));
+            });
+        });
     }
 
     /**
      * @hidden
+     * Undertake an isochronous transfer out to the device
+     * @param endpointNumber The number of the endpoint to transfer to
+     * @param data The data to transfer
+     * @param packetLengths An array of packet lengths outlining the amount to transfer
+     * @returns Promise containing a result
      */
     public isochronousTransferOut(endpointNumber: number, data: BufferSource, packetLengths: Array<number>): Promise<USBIsochronousOutTransferResult> {
-        return adapter.isochronousTransferOut(this._handle, endpointNumber, data, packetLengths);
+        return new Promise((resolve, reject) => {
+            if (!this.connected) return reject(new Error("isochronousTransferOut error: device not found"));
+
+            const result = this.getEndpoint("out", endpointNumber);
+            if (!result.endpoint) return reject(new Error("isochronousTransferOut error: endpoint not found"));
+            if (result.endpoint.type !== "isochronous") return reject(new Error("isochronousTransferOut error: invalid access"));
+            if (!this.opened || !result.iface.claimed) return reject(new Error("isochronousTransferOut error: invalid state"));
+
+            adapter.isochronousTransferOut(this._handle, endpointNumber, data, packetLengths)
+            .then(resolve)
+            .catch(error => {
+                reject(new Error(`isochronousTransferOut error: ${error}`));
+            });
+        });
+    }
+
+    /**
+     * Soft reset the device
+     * @returns Promise containing any error
+     */
+    public reset(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            if (!this.connected) return reject(new Error("reset error: device not found"));
+            if (!this.opened) return reject(new Error("reset error: invalid state"));
+
+            adapter.reset(this._handle)
+            .then(resolve)
+            .catch(error => {
+                reject(new Error(`reset error: ${error}`));
+            });
+        });
     }
 }

@@ -24,7 +24,6 @@
 */
 
 import { EventEmitter } from "events";
-import { USBDirection } from "./enums";
 import {
     getDeviceList,
     Device,
@@ -35,9 +34,12 @@ import {
     InterfaceDescriptor,
     on,
     LIBUSB_ENDPOINT_IN,
+    LIBUSB_ENDPOINT_OUT,
     LIBUSB_REQUEST_GET_DESCRIPTOR,
     LIBUSB_TRANSFER_TYPE_INTERRUPT,
-    LIBUSB_TRANSFER_TYPE_BULK
+    LIBUSB_TRANSFER_TYPE_BULK,
+    LIBUSB_RECIPIENT_ENDPOINT,
+    EndpointDescriptor
 } from "usb";
 import {
     USBControlTransferParameters,
@@ -55,19 +57,53 @@ import { USBDevice } from "./device";
 /**
  * @hidden
  */
-const usb = {
-    LIBUSB_DT_BOS: 0x0f,
-    LIBUSB_DT_BOS_SIZE: 5
-};
+const WEB_UUID = "3408b638-09a9-47a0-8bfd-a0768815b665";
 
 /**
  * @hidden
  */
-export class USBAdapter extends EventEmitter {
+const usb = {
+    LIBUSB_DT_BOS: 0x0f,
+    LIBUSB_DT_BOS_SIZE: 0x05,
+    LIBUSB_TRANSFER_TYPE_MASK: 0x03,
+    USB_VERSION: 0x201,
+    CAPABILITY_VERSION: 0x0100,
+    URL_REQUEST_TYPE: 0xC0,
+    URL_REQIUEST_INDEX: 0x02,
+    CLEAR_FEATURE: 0x01,
+    ENDPOINT_HALT: 0x00
+};
+
+export interface Adapter {
+    getConnected(handle: string): boolean;
+    getOpened(handle: string): boolean;
+
+    listUSBDevices(): Promise<Array<USBDevice>>;
+    open(handle: string): Promise<void>;
+    close(handle: string): Promise<void>;
+    selectConfiguration(handle: string, id: number): Promise<void>;
+    claimInterface(handle: string, address: number): Promise<void>;
+    releaseInterface(handle: string, address: number): Promise<void>;
+    selectAlternateInterface(handle: string, interfaceNumber: number, alternateSetting: number): Promise<void>;
+    controlTransferIn(handle: string, setup: USBControlTransferParameters, length: number): Promise<USBInTransferResult>;
+    controlTransferOut(handle: string, setup: USBControlTransferParameters, data: ArrayBuffer | ArrayBufferView): Promise<USBOutTransferResult>;
+    clearHalt(handle: string, endpointNumber: number): Promise<void>;
+    transferIn(handle: string, endpointNumber: number, length: number): Promise<USBInTransferResult>;
+    transferOut(handle: string, endpointNumber: number, data: BufferSource): Promise<USBOutTransferResult>;
+    isochronousTransferIn(_handle: string, _endpointNumber: number, _packetLengths: Array<number>): Promise<USBIsochronousInTransferResult>;
+    isochronousTransferOut(_handle: string, _endpointNumber: number, _data: BufferSource, _packetLengths: Array<number>): Promise<USBIsochronousOutTransferResult>;
+    reset(handle: string): Promise<void>;
+}
+
+/**
+ * @hidden
+ */
+export class USBAdapter extends EventEmitter implements Adapter {
 
     public static EVENT_DEVICE_CONNECT: string = "connect";
     public static EVENT_DEVICE_DISCONNECT: string = "disconnect";
 
+    // Maintains a live list of connected Web USB devices
     private devices: { [key: string]: { device: Device, url: string }} = {};
 
     constructor() {
@@ -162,7 +198,7 @@ export class USBAdapter extends EventEmitter {
         });
     }
 
-    private getDeviceCapabilities(device: Device, callback: (error: string, capabilities: any) => any) {
+    private getDeviceCapabilities(device: Device, callback: (error: string, capabilities: Array<any>) => any): void {
         const capabilities = [];
 
         this.getBosDescriptor(device, (error, descriptor) => {
@@ -185,57 +221,43 @@ export class USBAdapter extends EventEmitter {
 
     private getBosDescriptor(device: Device, callback: (error: string, descriptor: any) => any) {
 
-        if (device.deviceDescriptor.bcdUSB < 0x201) {
+        if (device.deviceDescriptor.bcdUSB < usb.USB_VERSION) {
             // BOS is only supported from USB 2.0.1
             return callback(undefined, null);
         }
 
-        device.controlTransfer(
-            LIBUSB_ENDPOINT_IN,
-            LIBUSB_REQUEST_GET_DESCRIPTOR,
-            (usb.LIBUSB_DT_BOS << 8),
-            0,
-            usb.LIBUSB_DT_BOS_SIZE,
-            (error1, buffer1) => {
-                if (error1) return callback(undefined, null);
+        device.controlTransfer(LIBUSB_ENDPOINT_IN, LIBUSB_REQUEST_GET_DESCRIPTOR, (usb.LIBUSB_DT_BOS << 8), 0, usb.LIBUSB_DT_BOS_SIZE, (error1, buffer1) => {
+            if (error1) return callback(undefined, null);
 
-                const totalLength = buffer1.readUInt16LE(2);
-                device.controlTransfer(
-                    LIBUSB_ENDPOINT_IN,
-                    LIBUSB_REQUEST_GET_DESCRIPTOR,
-                    (usb.LIBUSB_DT_BOS << 8),
-                    0,
-                    totalLength,
-                    (error, buffer) => {
-                        if (error) return callback(undefined, null);
+            const totalLength = buffer1.readUInt16LE(2);
+            device.controlTransfer(LIBUSB_ENDPOINT_IN, LIBUSB_REQUEST_GET_DESCRIPTOR, (usb.LIBUSB_DT_BOS << 8), 0, totalLength, (error, buffer) => {
+                if (error) return callback(undefined, null);
 
-                        const descriptor = {
-                            bLength: buffer.readUInt8(0),
-                            bDescriptorType: buffer.readUInt8(1),
-                            wTotalLength: buffer.readUInt16LE(2),
-                            bNumDeviceCaps: buffer.readUInt8(4),
-                            capabilities: []
-                        };
+                const descriptor = {
+                    bLength: buffer.readUInt8(0),
+                    bDescriptorType: buffer.readUInt8(1),
+                    wTotalLength: buffer.readUInt16LE(2),
+                    bNumDeviceCaps: buffer.readUInt8(4),
+                    capabilities: []
+                };
 
-                        let i = usb.LIBUSB_DT_BOS_SIZE;
-                        while (i < descriptor.wTotalLength) {
-                            const capability: any = {
-                                bLength: buffer.readUInt8(i + 0),
-                                bDescriptorType: buffer.readUInt8(i + 1),
-                                bDevCapabilityType: buffer.readUInt8(i + 2)
-                            };
+                let i = usb.LIBUSB_DT_BOS_SIZE;
+                while (i < descriptor.wTotalLength) {
+                    const capability: any = {
+                        bLength: buffer.readUInt8(i + 0),
+                        bDescriptorType: buffer.readUInt8(i + 1),
+                        bDevCapabilityType: buffer.readUInt8(i + 2)
+                    };
 
-                            capability.dev_capability_data = buffer.slice(i + 3, i + capability.bLength);
-                            descriptor.capabilities.push(capability);
-                            i += capability.bLength;
-                        }
+                    capability.dev_capability_data = buffer.slice(i + 3, i + capability.bLength);
+                    descriptor.capabilities.push(capability);
+                    i += capability.bLength;
+                }
 
-                        // Cache descriptor
-                        callback(undefined, descriptor);
-                    }
-                );
-            }
-        );
+                // Cache descriptor
+                callback(undefined, descriptor);
+            });
+        });
     }
 
     private getWebCapability(capabilities: any): any {
@@ -246,7 +268,7 @@ export class USBAdapter extends EventEmitter {
         const webCapability = platformCapabilities.find(capability => {
             const uuid = this.decodeUUID(capability.data.slice(1, 17));
             const version = capability.data.readUInt16LE(17);
-            return uuid === "3408b638-09a9-47a0-8bfd-a0768815b665" && version === 0x0100;
+            return uuid === WEB_UUID && version === usb.CAPABILITY_VERSION;
         });
 
         return webCapability;
@@ -274,14 +296,11 @@ export class USBAdapter extends EventEmitter {
         return new Promise((resolve, reject) => {
             if (!capability || !capability.data || capability.data.byteLength < 20) return null;
 
-            const REQUEST_TYPE = 0xC0;
-            const GET_URL = 2;
-
             const vendor = capability.data.readUInt8(19);
             const page = capability.data.readUInt8(20);
 
             device.open();
-            device.controlTransfer(REQUEST_TYPE, vendor, page, GET_URL, 64, (error, buffer) => {
+            device.controlTransfer(usb.URL_REQUEST_TYPE, vendor, page, usb.URL_REQIUEST_INDEX, 64, (error, buffer) => {
                 device.close();
                 if (error) return reject(error);
 
@@ -333,6 +352,7 @@ export class USBAdapter extends EventEmitter {
                 .then(serialNumber => {
                     const props: Partial<USBDevice> = {
                         _handle: device.deviceAddress.toString(),
+                        _maxPacketSize: descriptor.bMaxPacketSize0,
                         url: url,
                         deviceClass: descriptor.bDeviceClass,
                         deviceSubclass: descriptor.bDeviceSubClass,
@@ -377,7 +397,7 @@ export class USBAdapter extends EventEmitter {
         });
     }
 
-    private bufferToDataView(buffer): DataView {
+    private bufferToDataView(buffer: Buffer): DataView {
         const arrayBuffer = new Uint8Array(buffer).buffer;
         return new DataView(arrayBuffer);
     }
@@ -416,12 +436,12 @@ export class USBAdapter extends EventEmitter {
         if (endpoint && endpoint.direction === "out") return (endpoint as OutEndpoint);
     }
 
-    private endpointToUSBEndpoint(descriptor: any): USBEndpoint {
+    private endpointToUSBEndpoint(descriptor: EndpointDescriptor): USBEndpoint {
         return new USBEndpoint({
             endpointNumber: descriptor.bEndpointAddress,
             direction: descriptor.bEndpointAddress & LIBUSB_ENDPOINT_IN ? "in" : "out",
-            type: (descriptor.bmAttributes & 0x03) === LIBUSB_TRANSFER_TYPE_BULK ? "bulk"
-                : (descriptor.bmAttributes & 0x03) === LIBUSB_TRANSFER_TYPE_INTERRUPT ? "interrupt"
+            type: (descriptor.bmAttributes & usb.LIBUSB_TRANSFER_TYPE_MASK) === LIBUSB_TRANSFER_TYPE_BULK ? "bulk"
+                : (descriptor.bmAttributes & usb.LIBUSB_TRANSFER_TYPE_MASK) === LIBUSB_TRANSFER_TYPE_INTERRUPT ? "interrupt"
                 : "isochronous",
             packetSize: descriptor.wMaxPacketSize
         });
@@ -473,31 +493,8 @@ export class USBAdapter extends EventEmitter {
         return this.devices[handle].device;
     }
 
-    public getUSBDevices(): Promise<Array<USBDevice>> {
-        return this.loadDevices()
-        .then(() => {
-            return this.serialPromises(this.devicetoUSBDevice, Object.keys(this.devices));
-        });
-    }
-
-    public open(handle: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const device = this.getDevice(handle);
-            if (!device) return reject("device not found");
-
-            device.open();
-            resolve();
-        });
-    }
-
-    public close(handle: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const device = this.getDevice(handle);
-            if (!device) return reject("device not found");
-
-            device.close();
-            resolve();
-        });
+    public getConnected(handle: string): boolean {
+        return this.getDevice(handle) !== null;
     }
 
     public getOpened(handle: string): boolean {
@@ -506,10 +503,32 @@ export class USBAdapter extends EventEmitter {
         return (device.interfaces !== null);
     }
 
+    public listUSBDevices(): Promise<Array<USBDevice>> {
+        return this.loadDevices()
+        .then(() => {
+            return this.serialPromises(this.devicetoUSBDevice, Object.keys(this.devices));
+        });
+    }
+
+    public open(handle: string): Promise<void> {
+        return new Promise((resolve, _reject) => {
+            const device = this.getDevice(handle);
+            device.open();
+            resolve();
+        });
+    }
+
+    public close(handle: string): Promise<void> {
+        return new Promise((resolve, _reject) => {
+            const device = this.getDevice(handle);
+            device.close();
+            resolve();
+        });
+    }
+
     public selectConfiguration(handle: string, id: number): Promise<void> {
         return new Promise((resolve, reject) => {
             const device = this.getDevice(handle);
-            if (!device) return reject("device not found");
 
             device.setConfiguration(id, error => {
                 if (error) return reject(error);
@@ -519,9 +538,8 @@ export class USBAdapter extends EventEmitter {
     }
 
     public claimInterface(handle: string, address: number): Promise<void> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _reject) => {
             const device = this.getDevice(handle);
-            if (!device) return reject("device not found");
 
             device.interface(address).claim();
             resolve();
@@ -531,7 +549,6 @@ export class USBAdapter extends EventEmitter {
     public releaseInterface(handle: string, address: number): Promise<void> {
         return new Promise((resolve, reject) => {
             const device = this.getDevice(handle);
-            if (!device) return reject("device not found");
 
             device.interface(address).release(true, error => {
                 if (error) return reject(error);
@@ -544,7 +561,6 @@ export class USBAdapter extends EventEmitter {
         return new Promise((resolve, reject) => {
             const device = this.getDevice(handle);
             const iface = device.interface(interfaceNumber);
-            if (!iface) return reject("selectAlternateInterface error");
 
             iface.setAltSetting(alternateSetting, error => {
                 if (error) return reject(error);
@@ -556,7 +572,7 @@ export class USBAdapter extends EventEmitter {
     public controlTransferIn(handle: string, setup: USBControlTransferParameters, length: number): Promise<USBInTransferResult> {
         return new Promise((resolve, reject) => {
             const device = this.getDevice(handle);
-            const type = (setup.recipient | setup.requestType | 0x80);
+            const type = (setup.recipient | setup.requestType | LIBUSB_ENDPOINT_IN);
 
             device.controlTransfer(type, setup.request, setup.value, setup.index, length, (error, buffer) => {
                 if (error) return reject(error);
@@ -571,7 +587,7 @@ export class USBAdapter extends EventEmitter {
     public controlTransferOut(handle: string, setup: USBControlTransferParameters, data: ArrayBuffer | ArrayBufferView): Promise<USBOutTransferResult> {
         return new Promise((resolve, reject) => {
             const device = this.getDevice(handle);
-            const type = (setup.recipient | setup.requestType | 0x00);
+            const type = (setup.recipient | setup.requestType | LIBUSB_ENDPOINT_OUT);
             const buffer = this.bufferSourceToBuffer(data);
 
             device.controlTransfer(type, setup.request, setup.value, setup.index, buffer, error => {
@@ -580,6 +596,17 @@ export class USBAdapter extends EventEmitter {
                     bytesWritten: buffer.byteLength, // hack, should be bytes actually written
                     status: "ok" // hack
                 });
+            });
+        });
+    }
+
+    public clearHalt(handle: string, endpointNumber: number): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const device = this.getDevice(handle);
+
+            device.controlTransfer(LIBUSB_RECIPIENT_ENDPOINT, usb.CLEAR_FEATURE, usb.ENDPOINT_HALT, endpointNumber, 0, error => {
+                if (error) return reject(error);
+                resolve();
             });
         });
     }
@@ -612,12 +639,6 @@ export class USBAdapter extends EventEmitter {
                     status: "ok" // hack
                 });
             });
-        });
-    }
-
-    public clearHalt(_handle: string, _direction: USBDirection, _endpointNumber: number): Promise<void> {
-        return new Promise((_resolve, reject) => {
-            reject("error: method not implemented");
         });
     }
 
