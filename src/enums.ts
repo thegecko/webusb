@@ -23,12 +23,18 @@
 * SOFTWARE.
 */
 
+/**
+ * Request type
+ */
 export enum USBRequestType {
     standard = 0x00,
     class = 0x20,
     vendor = 0x40
 }
 
+/**
+ * Recipient
+ */
 export enum USBRecipient {
     device = 0x00,
     interface = 0x01,
@@ -36,8 +42,17 @@ export enum USBRecipient {
     other = 0x03
 }
 
+/**
+ * Transfer status
+ */
 export type USBTransferStatus = "ok" | "stall" | "babble";
 
+/**
+ * Endpoint direction
+ */
 export type USBDirection = "in" | "out";
 
+/**
+ * Endpoint type
+ */
 export type USBEndpointType = "bulk" | "interrupt" | "isochronous";

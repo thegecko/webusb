@@ -26,12 +26,23 @@
 import { USBInterface } from "./interface";
 
 /**
- * USB Configuration class
+ * USB Configuration
  */
 export class USBConfiguration {
 
+    /**
+     * The value of this configuration
+     */
     public readonly configurationValue: number = null;
+
+    /**
+     * The name of this configuration
+     */
     public readonly configurationName?: string = null;
+
+    /**
+     * The array of interfaces on this configuration
+     */
     public readonly interfaces: Array<USBInterface> = [];
 
     /**

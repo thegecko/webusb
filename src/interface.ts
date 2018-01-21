@@ -27,19 +27,32 @@ import { USBAlternateInterface } from "./alternate";
 import { adapter } from "./adapter";
 
 /**
- * USB Interface class
+ * USB Interface
  */
 export class USBInterface {
 
+    /**
+     * Number of this interface
+     */
     public readonly interfaceNumber: number = null;
+
+    /**
+     * Array of alternate interfaces
+     */
     public readonly alternates: Array<USBAlternateInterface> = [];
 
     private _claimed: boolean = false;
+    /**
+     * Whether this interface is claimed
+     */
     public get claimed(): boolean {
         return this._claimed;
     }
 
     private _currentAlternate: number = 0;
+    /**
+     * Return the current alternate interface
+     */
     public get alternate(): USBAlternateInterface {
         return this.alternates.find(alternate => alternate.alternateSetting === this._currentAlternate);
     }

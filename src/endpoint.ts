@@ -26,13 +26,28 @@
 import { USBDirection, USBEndpointType } from "./enums";
 
 /**
- * USB Endpoint class
+ * USB Endpoint
  */
 export class USBEndpoint {
 
+    /**
+     * The number of this endpoint
+     */
     public readonly endpointNumber: number = null;
+
+    /**
+     * The direction of this endpoint
+     */
     public readonly direction: USBDirection = null;
+
+    /**
+     * The type of this endpoint
+     */
     public readonly type: USBEndpointType = null;
+
+    /**
+     * The packet size of this endpoint
+     */
     public readonly packetSize: number = null;
 
     /**

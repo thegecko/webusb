@@ -57,12 +57,8 @@ import { USBDevice } from "./device";
 /**
  * @hidden
  */
-const WEB_UUID = "3408b638-09a9-47a0-8bfd-a0768815b665";
-
-/**
- * @hidden
- */
-const usb = {
+const CONSTANTS = {
+    WEB_UUID: "3408b638-09a9-47a0-8bfd-a0768815b665",
     LIBUSB_DT_BOS: 0x0f,
     LIBUSB_DT_BOS_SIZE: 0x05,
     LIBUSB_TRANSFER_TYPE_MASK: 0x03,
@@ -221,16 +217,16 @@ export class USBAdapter extends EventEmitter implements Adapter {
 
     private getBosDescriptor(device: Device, callback: (error: string, descriptor: any) => any) {
 
-        if (device.deviceDescriptor.bcdUSB < usb.USB_VERSION) {
+        if (device.deviceDescriptor.bcdUSB < CONSTANTS.USB_VERSION) {
             // BOS is only supported from USB 2.0.1
             return callback(undefined, null);
         }
 
-        device.controlTransfer(LIBUSB_ENDPOINT_IN, LIBUSB_REQUEST_GET_DESCRIPTOR, (usb.LIBUSB_DT_BOS << 8), 0, usb.LIBUSB_DT_BOS_SIZE, (error1, buffer1) => {
+        device.controlTransfer(LIBUSB_ENDPOINT_IN, LIBUSB_REQUEST_GET_DESCRIPTOR, (CONSTANTS.LIBUSB_DT_BOS << 8), 0, CONSTANTS.LIBUSB_DT_BOS_SIZE, (error1, buffer1) => {
             if (error1) return callback(undefined, null);
 
             const totalLength = buffer1.readUInt16LE(2);
-            device.controlTransfer(LIBUSB_ENDPOINT_IN, LIBUSB_REQUEST_GET_DESCRIPTOR, (usb.LIBUSB_DT_BOS << 8), 0, totalLength, (error, buffer) => {
+            device.controlTransfer(LIBUSB_ENDPOINT_IN, LIBUSB_REQUEST_GET_DESCRIPTOR, (CONSTANTS.LIBUSB_DT_BOS << 8), 0, totalLength, (error, buffer) => {
                 if (error) return callback(undefined, null);
 
                 const descriptor = {
@@ -241,7 +237,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
                     capabilities: []
                 };
 
-                let i = usb.LIBUSB_DT_BOS_SIZE;
+                let i = CONSTANTS.LIBUSB_DT_BOS_SIZE;
                 while (i < descriptor.wTotalLength) {
                     const capability: any = {
                         bLength: buffer.readUInt8(i + 0),
@@ -268,7 +264,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
         const webCapability = platformCapabilities.find(capability => {
             const uuid = this.decodeUUID(capability.data.slice(1, 17));
             const version = capability.data.readUInt16LE(17);
-            return uuid === WEB_UUID && version === usb.CAPABILITY_VERSION;
+            return uuid === CONSTANTS.WEB_UUID && version === CONSTANTS.CAPABILITY_VERSION;
         });
 
         return webCapability;
@@ -300,7 +296,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
             const page = capability.data.readUInt8(20);
 
             device.open();
-            device.controlTransfer(usb.URL_REQUEST_TYPE, vendor, page, usb.URL_REQIUEST_INDEX, 64, (error, buffer) => {
+            device.controlTransfer(CONSTANTS.URL_REQUEST_TYPE, vendor, page, CONSTANTS.URL_REQIUEST_INDEX, 64, (error, buffer) => {
                 device.close();
                 if (error) return reject(error);
 
@@ -440,8 +436,8 @@ export class USBAdapter extends EventEmitter implements Adapter {
         return new USBEndpoint({
             endpointNumber: descriptor.bEndpointAddress,
             direction: descriptor.bEndpointAddress & LIBUSB_ENDPOINT_IN ? "in" : "out",
-            type: (descriptor.bmAttributes & usb.LIBUSB_TRANSFER_TYPE_MASK) === LIBUSB_TRANSFER_TYPE_BULK ? "bulk"
-                : (descriptor.bmAttributes & usb.LIBUSB_TRANSFER_TYPE_MASK) === LIBUSB_TRANSFER_TYPE_INTERRUPT ? "interrupt"
+            type: (descriptor.bmAttributes & CONSTANTS.LIBUSB_TRANSFER_TYPE_MASK) === LIBUSB_TRANSFER_TYPE_BULK ? "bulk"
+                : (descriptor.bmAttributes & CONSTANTS.LIBUSB_TRANSFER_TYPE_MASK) === LIBUSB_TRANSFER_TYPE_INTERRUPT ? "interrupt"
                 : "isochronous",
             packetSize: descriptor.wMaxPacketSize
         });
@@ -604,7 +600,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
         return new Promise((resolve, reject) => {
             const device = this.getDevice(handle);
 
-            device.controlTransfer(LIBUSB_RECIPIENT_ENDPOINT, usb.CLEAR_FEATURE, usb.ENDPOINT_HALT, endpointNumber, 0, error => {
+            device.controlTransfer(LIBUSB_RECIPIENT_ENDPOINT, CONSTANTS.CLEAR_FEATURE, CONSTANTS.ENDPOINT_HALT, endpointNumber, 0, error => {
                 if (error) return reject(error);
                 resolve();
             });

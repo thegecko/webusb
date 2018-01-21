@@ -43,7 +43,7 @@ interface EndpointResult {
 }
 
 /**
- * USB Device class
+ * USB Device
  */
 export class USBDevice {
 

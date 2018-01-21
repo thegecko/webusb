@@ -26,15 +26,38 @@
 import { USBEndpoint } from "./endpoint";
 
 /**
- * USB Alternate Interface class
+ * USB Alternate Interface
  */
 export class USBAlternateInterface {
 
+    /**
+     * The alternate setting for this interface
+     */
     public readonly alternateSetting: number = null;
+
+    /**
+     * The class of this interface
+     */
     public readonly interfaceClass: number = null;
+
+    /**
+     * The sub class of this interface
+     */
     public readonly interfaceSubclass: number = null;
+
+    /**
+     * The protocol of this interface
+     */
     public readonly interfaceProtocol: number = null;
+
+    /**
+     * The name of this interface
+     */
     public readonly interfaceName?: string = null;
+
+    /**
+     * The array of endpoints on this interface
+     */
     public readonly endpoints: Array<USBEndpoint> = [];
 
     /**
