@@ -29,7 +29,7 @@ usb.requestDevice({
     filters: [{vendorId: 0x0d28}]
 })
 .then(device => {
-	...
+    ...
 })
 ```
 
@@ -52,14 +52,14 @@ function handleDevicesFound(devices, selectFn) {
 }
 
 var usb = new USB({
-	devicesFound: handleDevicesFound
+    devicesFound: handleDevicesFound
 });
 
 usb.requestDevice({
     filters: [{vendorId: 0x0d28}]
 })
 .then(device => {
-	...
+    ...
 })
 ```
 
