@@ -78,4 +78,4 @@ https://wicg.github.io/webusb/
 - [x] USBDevice.url
 - [x] Device selector hook
 - [x] API Documentation
-- [ ] Examples
+- [x] Examples

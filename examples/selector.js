@@ -23,36 +23,42 @@
 * SOFTWARE.
 */
 
-var path = require("path");
-var exec = require("child_process").exec;
-var usb = require("../").usb;
+var USB = require("../").USB;
 
-function openUrl(url) {
-    console.log(`Device connected, opening url: ${url}`);
+function handleDevicesFound(devices, selectFn) {
+    process.stdin.setRawMode(true);
+    process.stdin.setEncoding("utf8");
+    process.stdin.on("readable", () => {
+        var input = process.stdin.read();
+        if (input === "\u0003") {
+            process.exit();
+        } else {
+            var index = parseInt(input);
+            if (index && index <= devices.length) {
+                process.stdin.setRawMode(false);
+                selectFn(devices[index - 1]);
+            }
+        }
+    });
 
-    var cmd = path.join(__dirname, "xdg-open");
-    if (process.platform === "darwin") cmd = "open";
-    else if (process.platform === "win32") cmd = `start ""`;
-
-    exec(`${cmd} ${url}`);
+    console.log("select a device to see it's active configuration:");
+    devices.forEach((device, index) => {
+        console.log(`${index + 1}: ${device.productName || device.serialNumber}`);
+    });
 }
 
-console.log("Searching for Web USB devices...");
+var usb = new USB({
+    devicesFound: handleDevicesFound
+});
 
 usb.requestDevice({
     filters: [{vendorId: 0x0d28}]
 })
 .then(device => {
-    if (device.url) openUrl(device.url);
+    console.log(JSON.stringify(device.configuration, null, "\t"));
+    process.exit();
 })
 .catch(error => {
     console.log(error);
-});
-
-usb.addEventListener("connect", device => {
-    if (device.url) openUrl(device.url);
-});
-
-usb.addEventListener("disconnect", device => {
-    if (device.url) console.log(`Device disconnected with url: ${device.url}`);
+    process.exit();
 });

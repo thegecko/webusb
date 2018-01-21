@@ -199,7 +199,7 @@ export class USB extends EventDispatcher {
                     resolve(device);
                 }
 
-                // If no deviceFound function, select the first device found
+                // If no devicesFound function, select the first device found
                 if (!this.devicesFound) return selectFn.call(this, devices[0]);
 
                 const selectedDevice = this.devicesFound(devices, selectFn.bind(this));
