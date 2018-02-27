@@ -187,7 +187,11 @@ export class USBAdapter extends EventEmitter implements Adapter {
             }
             // device.getCapabilities((error, capabilities) => {
             this.getDeviceCapabilities(device, (error, capabilities) => {
-                device.close();
+                try {
+                    // Older macs (<10.12) can error with some host devices during a close at this point
+                    device.close();
+                // tslint:disable-next-line:no-empty
+                } catch (_e) {}
                 if (error) return reject(error);
                 resolve(capabilities);
             });
