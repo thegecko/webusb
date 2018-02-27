@@ -78,7 +78,7 @@ gulp.task("compile", ["clean"], function() {
 });
 
 gulp.task("watch", ["setWatch", "default"], function() {
-    gulp.watch(srcFiles, ["default"]);
+    gulp.watch(srcFiles, ["lint", "compile"]);
 });
 
 gulp.task("default", ["lint", "doc", "compile"]);
