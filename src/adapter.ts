@@ -65,7 +65,7 @@ const CONSTANTS = {
     USB_VERSION: 0x201,
     CAPABILITY_VERSION: 0x0100,
     URL_REQUEST_TYPE: 0xC0,
-    URL_REQIUEST_INDEX: 0x02,
+    URL_REQUEST_INDEX: 0x02,
     CLEAR_FEATURE: 0x01,
     ENDPOINT_HALT: 0x00
 };
@@ -292,17 +292,22 @@ export class USBAdapter extends EventEmitter implements Adapter {
         return `${data1}-${data2}-${data3}-${data4.join("")}-${data5.join("")}`;
     }
 
-    private getWebUrl(device: Device, capability: any): Promise<string> {
+    private getWebUrl(device: Device, capability: any, suppressErrors: boolean = true): Promise<string> {
         return new Promise((resolve, reject) => {
-            if (!capability || !capability.data || capability.data.byteLength < 20) return null;
+            if (!capability || !capability.data || capability.data.byteLength < 20) return resolve(null);
 
             const vendor = capability.data.readUInt8(19);
             const page = capability.data.readUInt8(20);
 
             device.open();
-            device.controlTransfer(CONSTANTS.URL_REQUEST_TYPE, vendor, page, CONSTANTS.URL_REQIUEST_INDEX, 64, (error, buffer) => {
+            device.controlTransfer(CONSTANTS.URL_REQUEST_TYPE, vendor, page, CONSTANTS.URL_REQUEST_INDEX, 64, (error, buffer) => {
                 device.close();
-                if (error) return reject(error);
+
+                if (error) {
+                    // An error may be due to the URL not existing
+                    if (suppressErrors) return resolve(null);
+                    else return reject(error);
+                }
 
                 // const length = buffer.readUInt8(0);
                 // const type = buffer.readUInt8(1);
