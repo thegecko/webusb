@@ -268,6 +268,10 @@ export class USBDevice {
      */
     public selectConfiguration(configurationValue: number): Promise<void> {
         return new Promise((resolve, reject) => {
+
+            // Don't change the configuration if it's already set correctly
+            if (configurationValue === this._currentConfiguration) return resolve();
+
             if (!this.connected) return reject(new Error("selectConfiguration error: device not found"));
 
             const config =  this.configurations.find(configuration => configuration.configurationValue === configurationValue);
