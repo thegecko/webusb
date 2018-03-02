@@ -55,10 +55,13 @@ usb.requestDevice({
     filters: [{vendorId: 0x0d28}]
 })
 .then(device => {
-    console.log(JSON.stringify(device.configuration, null, "\t"));
+    console.log(JSON.stringify(device, (key, value) => {
+        if (key === "interfaces") return `[${value.length}...]`;
+        return value;
+    }, "\t"));
     process.exit();
 })
 .catch(error => {
-    console.log(error);
+    console.log(error.message);
     process.exit();
 });
