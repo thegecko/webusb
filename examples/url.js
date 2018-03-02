@@ -27,8 +27,13 @@ var path = require("path");
 var exec = require("child_process").exec;
 var usb = require("../").usb;
 
+function deviceFound(device) {
+    console.log(`Device '${device.productName || device.serialNumber}' connected`);
+    if (device.url) openUrl(device.url);
+}
+
 function openUrl(url) {
-    console.log(`Device connected, opening url: ${url}`);
+    console.log(`Opening url: ${url}`);
 
     var cmd = path.join(__dirname, "xdg-open");
     if (process.platform === "darwin") cmd = "open";
@@ -42,17 +47,13 @@ console.log("Searching for Web USB devices...");
 usb.requestDevice({
     filters: [{vendorId: 0x0d28}]
 })
-.then(device => {
-    if (device.url) openUrl(device.url);
-})
+.then(device => deviceFound(device))
 .catch(error => {
-    console.log(error);
+    // console.log(error.message);
 });
 
-usb.addEventListener("connect", device => {
-    if (device.url) openUrl(device.url);
-});
+usb.addEventListener("connect", deviceFound);
 
 usb.addEventListener("disconnect", device => {
-    if (device.url) console.log(`Device disconnected with url: ${device.url}`);
+    console.log(`Device '${device.productName || device.serialNumber}' disconnected`);
 });
