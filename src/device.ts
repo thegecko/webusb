@@ -24,7 +24,7 @@
 */
 
 import { LIBUSB_ENDPOINT_IN } from "usb";
-import { USBDirection, USBRecipient } from "./enums";
+import { USBDirection } from "./enums";
 import {
     USBControlTransferParameters,
     USBInTransferResult,
@@ -213,13 +213,13 @@ export class USBDevice {
     }
 
     private setupInvalid(setup: USBControlTransferParameters): string {
-        if (setup.recipient & USBRecipient.interface) {
+        if (setup.recipient === "interface") {
             const interfaceNumber = setup.index & 0xff; // lower 8 bits
             const iface = this.configuration.interfaces.find(usbInterface => usbInterface.interfaceNumber === interfaceNumber);
             if (!iface) return "interface not found";
             if (!iface.claimed) return "invalid state";
 
-        } else if (setup.recipient & USBRecipient.endpoint) {
+        } else if (setup.recipient === "endpoint") {
             const endpointNumber = setup.index & 0x0f; // lower 4 bits
             const direction = setup.index & LIBUSB_ENDPOINT_IN ? "in" : "out";
 

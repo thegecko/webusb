@@ -38,7 +38,13 @@ import {
     LIBUSB_REQUEST_GET_DESCRIPTOR,
     LIBUSB_TRANSFER_TYPE_INTERRUPT,
     LIBUSB_TRANSFER_TYPE_BULK,
+    LIBUSB_RECIPIENT_DEVICE,
+    LIBUSB_RECIPIENT_INTERFACE,
     LIBUSB_RECIPIENT_ENDPOINT,
+    LIBUSB_RECIPIENT_OTHER,
+    LIBUSB_REQUEST_TYPE_STANDARD,
+    LIBUSB_REQUEST_TYPE_CLASS,
+    LIBUSB_REQUEST_TYPE_VENDOR,
     EndpointDescriptor
 } from "usb";
 import {
@@ -498,6 +504,19 @@ export class USBAdapter extends EventEmitter implements Adapter {
         return this.devices[handle].device;
     }
 
+    private controlTransferParamsToType(setup: USBControlTransferParameters, direction: number): number {
+        const recipient = setup.recipient === "device" ? LIBUSB_RECIPIENT_DEVICE
+                        : setup.recipient === "interface" ? LIBUSB_RECIPIENT_INTERFACE
+                        : setup.recipient === "endpoint" ? LIBUSB_RECIPIENT_ENDPOINT
+                        : LIBUSB_RECIPIENT_OTHER;
+
+        const requestType = setup.requestType === "standard" ? LIBUSB_REQUEST_TYPE_STANDARD
+                          : setup.requestType === "class" ? LIBUSB_REQUEST_TYPE_CLASS
+                          : LIBUSB_REQUEST_TYPE_VENDOR;
+
+        return recipient | requestType | direction;
+    }
+
     public getConnected(handle: string): boolean {
         return this.getDevice(handle) !== null;
     }
@@ -577,7 +596,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
     public controlTransferIn(handle: string, setup: USBControlTransferParameters, length: number): Promise<USBInTransferResult> {
         return new Promise((resolve, reject) => {
             const device = this.getDevice(handle);
-            const type = (setup.recipient | setup.requestType | LIBUSB_ENDPOINT_IN);
+            const type = this.controlTransferParamsToType(setup, LIBUSB_ENDPOINT_IN);
 
             device.controlTransfer(type, setup.request, setup.value, setup.index, length, (error, buffer) => {
                 if (error) return reject(error);
@@ -592,7 +611,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
     public controlTransferOut(handle: string, setup: USBControlTransferParameters, data: ArrayBuffer | ArrayBufferView): Promise<USBOutTransferResult> {
         return new Promise((resolve, reject) => {
             const device = this.getDevice(handle);
-            const type = (setup.recipient | setup.requestType | LIBUSB_ENDPOINT_OUT);
+            const type = this.controlTransferParamsToType(setup, LIBUSB_ENDPOINT_OUT);
             const buffer = this.bufferSourceToBuffer(data);
 
             device.controlTransfer(type, setup.request, setup.value, setup.index, buffer, error => {
