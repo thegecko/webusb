@@ -26,21 +26,12 @@
 /**
  * Request type
  */
-export enum USBRequestType {
-    standard = 0x00,
-    class = 0x20,
-    vendor = 0x40
-}
+export type USBRequestType = "standard" | "class" | "vendor";
 
 /**
  * Recipient
  */
-export enum USBRecipient {
-    device = 0x00,
-    interface = 0x01,
-    endpoint = 0x02,
-    other = 0x03
-}
+export type USBRecipient = "device" | "interface" | "endpoint" | "other";
 
 /**
  * Transfer status
