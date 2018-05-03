@@ -117,7 +117,9 @@ export class USBAdapter extends EventEmitter implements Adapter {
                 if (loadedDevice) {
                     this.devicetoUSBDevice(loadedDevice.deviceAddress.toString())
                     .then(usbDevice => {
-                        this.emit(USBAdapter.EVENT_DEVICE_CONNECT, usbDevice);
+                        if (usbDevice) {
+                            this.emit(USBAdapter.EVENT_DEVICE_CONNECT, usbDevice);
+                        }
                     });
                 }
             });
@@ -140,7 +142,9 @@ export class USBAdapter extends EventEmitter implements Adapter {
             .then(results => {
                 return task.call(this, param)
                 .then(result => {
-                    results.push(result);
+                    if (result) {
+                        results.push(result);
+                    }
                     return results;
                 });
             });
@@ -171,8 +175,6 @@ export class USBAdapter extends EventEmitter implements Adapter {
         return this.getCapabilities(device)
         .then(capabilities => this.getWebCapability(capabilities))
         .then(capability => {
-            if (!capability) return null;
-
             return this.getWebUrl(device, capability)
             .then(url => {
                 this.devices[device.deviceAddress.toString()] = {
@@ -333,6 +335,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
             const device = this.devices[handle].device;
             const url = this.devices[handle].url;
             const configs: Array<ConfigDescriptor> = device.allConfigDescriptors;
+            if (!configs) return resolve(null);
 
             return this.serialDevicePromises(this.configToUSBConfiguration, device, configs)
             .then(configurations => {
@@ -384,6 +387,8 @@ export class USBAdapter extends EventEmitter implements Adapter {
                     };
                     return resolve(new USBDevice(props));
                 });
+            }).catch(_e => {
+                resolve(null);
             });
         });
     }
