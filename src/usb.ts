@@ -86,7 +86,7 @@ export class USB extends EventDispatcher {
     }
 
     private filterDevice(options: USBDeviceRequestOptions, device: USBDevice): boolean {
-        return options.filters.every(filter => {
+        return options.filters.some(filter => {
             // Vendor
             if (filter.vendorId && filter.vendorId !== device.vendorId) return false;
 
