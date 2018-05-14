@@ -402,7 +402,7 @@ export class USBDevice {
             const setupError = this.setupInvalid(setup);
             if (setupError) return reject(new Error(`controlTransferOut error: ${setupError}`));
 
-            if (data.byteLength > this._maxPacketSize) return reject(new Error("controlTransferOut error: length exceeds the maximum packet size"));
+            if (data && data.byteLength > this._maxPacketSize) return reject(new Error("controlTransferOut error: length exceeds the maximum packet size"));
 
             adapter.controlTransferOut(this._handle, setup, data)
             .then(resolve)

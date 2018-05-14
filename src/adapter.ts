@@ -613,11 +613,11 @@ export class USBAdapter extends EventEmitter implements Adapter {
         });
     }
 
-    public controlTransferOut(handle: string, setup: USBControlTransferParameters, data: ArrayBuffer | ArrayBufferView): Promise<USBOutTransferResult> {
+    public controlTransferOut(handle: string, setup: USBControlTransferParameters, data?: ArrayBuffer | ArrayBufferView): Promise<USBOutTransferResult> {
         return new Promise((resolve, reject) => {
             const device = this.getDevice(handle);
             const type = this.controlTransferParamsToType(setup, LIBUSB_ENDPOINT_OUT);
-            const buffer = this.bufferSourceToBuffer(data);
+            const buffer = data ? this.bufferSourceToBuffer(data) : new Buffer(0);
 
             device.controlTransfer(type, setup.request, setup.value, setup.index, buffer, error => {
                 if (error) return reject(error);
