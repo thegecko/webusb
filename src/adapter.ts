@@ -453,9 +453,10 @@ export class USBAdapter extends EventEmitter implements Adapter {
     }
 
     private endpointToUSBEndpoint(descriptor: EndpointDescriptor): USBEndpoint {
+        const direction = descriptor.bEndpointAddress & LIBUSB_ENDPOINT_IN ? "in" : "out";
         return new USBEndpoint({
-            endpointNumber: descriptor.bEndpointAddress,
-            direction: descriptor.bEndpointAddress & LIBUSB_ENDPOINT_IN ? "in" : "out",
+            endpointNumber: descriptor.bEndpointAddress ^ (direction === "in" ? LIBUSB_ENDPOINT_IN : LIBUSB_ENDPOINT_OUT),
+            direction: direction,
             type: (descriptor.bmAttributes & CONSTANTS.LIBUSB_TRANSFER_TYPE_MASK) === LIBUSB_TRANSFER_TYPE_BULK ? "bulk"
                 : (descriptor.bmAttributes & CONSTANTS.LIBUSB_TRANSFER_TYPE_MASK) === LIBUSB_TRANSFER_TYPE_INTERRUPT ? "interrupt"
                 : "isochronous",
