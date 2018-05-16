@@ -428,11 +428,12 @@ export class USBAdapter extends EventEmitter implements Adapter {
         return new Buffer(arrayBuffer);
     }
 
-    private getEndpoint(device: Device, endpointNumber: number): Endpoint {
+    private getEndpoint(device: Device, direction: USBDirection, endpointNumber: number): Endpoint {
         let endpoint: Endpoint = null;
+        const address = endpointNumber & (direction === "in" ? LIBUSB_ENDPOINT_IN : LIBUSB_ENDPOINT_OUT);
 
         device.interfaces.some(iface => {
-            const epoint = iface.endpoint(endpointNumber);
+            const epoint = iface.endpoint(address);
 
             if (epoint) {
                 endpoint = epoint;
@@ -444,12 +445,12 @@ export class USBAdapter extends EventEmitter implements Adapter {
     }
 
     private getInEndpoint(device: Device, endpointNumber: number): InEndpoint {
-        const endpoint = this.getEndpoint(device, endpointNumber & LIBUSB_ENDPOINT_IN);
+        const endpoint = this.getEndpoint(device, "in", endpointNumber);
         if (endpoint && endpoint.direction === "in") return (endpoint as InEndpoint);
     }
 
     private getOutEndpoint(device: Device, endpointNumber: number): OutEndpoint {
-        const endpoint = this.getEndpoint(device, endpointNumber & LIBUSB_ENDPOINT_OUT);
+        const endpoint = this.getEndpoint(device, "out", endpointNumber);
         if (endpoint && endpoint.direction === "out") return (endpoint as OutEndpoint);
     }
 
