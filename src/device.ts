@@ -198,11 +198,11 @@ export class USBDevice {
         let iface = null;
 
         this.configuration.interfaces.some(usbInterface => {
-            iface = usbInterface;
-            endpoint = iface.alternate.endpoints.find(usbEndpoint => {
+            endpoint = usbInterface.alternate.endpoints.find(usbEndpoint => {
                 return (usbEndpoint.endpointNumber === endpointNumber && usbEndpoint.direction === direction);
             });
 
+            if (endpoint) iface = usbInterface;
             return endpoint;
         });
 
