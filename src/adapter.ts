@@ -59,6 +59,7 @@ import { USBInterface } from "./interface";
 import { USBAlternateInterface } from "./alternate";
 import { USBEndpoint } from "./endpoint";
 import { USBDevice } from "./device";
+import { USBDirection } from "./enums";
 
 /**
  * @hidden
@@ -89,7 +90,7 @@ export interface Adapter {
     selectAlternateInterface(handle: string, interfaceNumber: number, alternateSetting: number): Promise<void>;
     controlTransferIn(handle: string, setup: USBControlTransferParameters, length: number): Promise<USBInTransferResult>;
     controlTransferOut(handle: string, setup: USBControlTransferParameters, data: ArrayBuffer | ArrayBufferView): Promise<USBOutTransferResult>;
-    clearHalt(handle: string, endpointNumber: number): Promise<void>;
+    clearHalt(handle: string, direction: USBDirection, endpointNumber: number): Promise<void>;
     transferIn(handle: string, endpointNumber: number, length: number): Promise<USBInTransferResult>;
     transferOut(handle: string, endpointNumber: number, data: BufferSource): Promise<USBOutTransferResult>;
     isochronousTransferIn(_handle: string, _endpointNumber: number, _packetLengths: Array<number>): Promise<USBIsochronousInTransferResult>;
@@ -427,11 +428,12 @@ export class USBAdapter extends EventEmitter implements Adapter {
         return new Buffer(arrayBuffer);
     }
 
-    private getEndpoint(device: Device, endpointNumber: number): Endpoint {
+    private getEndpoint(device: Device, direction: USBDirection, endpointNumber: number): Endpoint {
         let endpoint: Endpoint = null;
+        const address = endpointNumber & (direction === "in" ? LIBUSB_ENDPOINT_IN : LIBUSB_ENDPOINT_OUT);
 
         device.interfaces.some(iface => {
-            const epoint = iface.endpoint(endpointNumber);
+            const epoint = iface.endpoint(address);
 
             if (epoint) {
                 endpoint = epoint;
@@ -443,19 +445,20 @@ export class USBAdapter extends EventEmitter implements Adapter {
     }
 
     private getInEndpoint(device: Device, endpointNumber: number): InEndpoint {
-        const endpoint = this.getEndpoint(device, endpointNumber);
+        const endpoint = this.getEndpoint(device, "in", endpointNumber);
         if (endpoint && endpoint.direction === "in") return (endpoint as InEndpoint);
     }
 
     private getOutEndpoint(device: Device, endpointNumber: number): OutEndpoint {
-        const endpoint = this.getEndpoint(device, endpointNumber);
+        const endpoint = this.getEndpoint(device, "out", endpointNumber);
         if (endpoint && endpoint.direction === "out") return (endpoint as OutEndpoint);
     }
 
     private endpointToUSBEndpoint(descriptor: EndpointDescriptor): USBEndpoint {
+        const direction = descriptor.bEndpointAddress & LIBUSB_ENDPOINT_IN ? "in" : "out";
         return new USBEndpoint({
-            endpointNumber: descriptor.bEndpointAddress,
-            direction: descriptor.bEndpointAddress & LIBUSB_ENDPOINT_IN ? "in" : "out",
+            endpointNumber: descriptor.bEndpointAddress ^ (direction === "in" ? LIBUSB_ENDPOINT_IN : LIBUSB_ENDPOINT_OUT),
+            direction: direction,
             type: (descriptor.bmAttributes & CONSTANTS.LIBUSB_TRANSFER_TYPE_MASK) === LIBUSB_TRANSFER_TYPE_BULK ? "bulk"
                 : (descriptor.bmAttributes & CONSTANTS.LIBUSB_TRANSFER_TYPE_MASK) === LIBUSB_TRANSFER_TYPE_INTERRUPT ? "interrupt"
                 : "isochronous",
@@ -629,11 +632,11 @@ export class USBAdapter extends EventEmitter implements Adapter {
         });
     }
 
-    public clearHalt(handle: string, endpointNumber: number): Promise<void> {
+    public clearHalt(handle: string, direction: USBDirection, endpointNumber: number): Promise<void> {
         return new Promise((resolve, reject) => {
             const device = this.getDevice(handle);
-
-            device.controlTransfer(LIBUSB_RECIPIENT_ENDPOINT, CONSTANTS.CLEAR_FEATURE, CONSTANTS.ENDPOINT_HALT, endpointNumber, 0, error => {
+            const wIndex = endpointNumber & (direction === "in" ? LIBUSB_ENDPOINT_IN : LIBUSB_ENDPOINT_OUT);
+            device.controlTransfer(LIBUSB_RECIPIENT_ENDPOINT, CONSTANTS.CLEAR_FEATURE, CONSTANTS.ENDPOINT_HALT, wIndex, 0, error => {
                 if (error) return reject(error);
                 resolve();
             });

@@ -193,16 +193,16 @@ export class USBDevice {
         this._currentConfiguration = init._currentConfiguration;
     }
 
-    private getEndpoint(direction: string, endpointNumber: number): EndpointResult {
+    private getEndpoint(direction: USBDirection, endpointNumber: number): EndpointResult {
         let endpoint = null;
         let iface = null;
 
         this.configuration.interfaces.some(usbInterface => {
-            iface = usbInterface;
-            endpoint = iface.alternate.endpoints.find(usbEndpoint => {
+            endpoint = usbInterface.alternate.endpoints.find(usbEndpoint => {
                 return (usbEndpoint.endpointNumber === endpointNumber && usbEndpoint.direction === direction);
             });
 
+            if (endpoint) iface = usbInterface;
             return endpoint;
         });
 
@@ -427,7 +427,7 @@ export class USBDevice {
             if (!result.endpoint) return reject(new Error("clearHalt error: endpoint not found"));
             if (!this.opened || !result.iface.claimed) return reject(new Error("clearHalt error: invalid state"));
 
-            adapter.clearHalt(this._handle, endpointNumber)
+            adapter.clearHalt(this._handle, direction, endpointNumber)
             .then(resolve)
             .catch(error => {
                 reject(new Error(`clearHalt error: ${error}`));
