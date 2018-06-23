@@ -133,8 +133,8 @@ export class USBAdapter extends EventEmitter implements Adapter {
             if (device.deviceAddress) {
                 const address = device.deviceAddress.toString();
                 if (this.devices[address]) {
-                    this.emit(USBAdapter.EVENT_DEVICE_DISCONNECT, address);
                     delete this.devices[address];
+                    this.emit(USBAdapter.EVENT_DEVICE_DISCONNECT, address);
                 }
             }
         });
