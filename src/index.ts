@@ -24,6 +24,7 @@
 */
 
 import { USB } from "./usb";
+import { USBAdapter } from "./adapter";
 
 /**
  * Default usb instance synonymous with `navigator.usb`
@@ -33,7 +34,7 @@ export const usb = new USB();
 /**
  * USB class for creating new instances
  */
-export { USB };
+export { USB, USBAdapter };
 
 /**
  * Interfaces

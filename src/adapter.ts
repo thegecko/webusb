@@ -77,6 +77,9 @@ const CONSTANTS = {
     ENDPOINT_HALT: 0x00
 };
 
+/**
+ * @hidden
+ */
 export interface Adapter {
     getConnected(handle: string): boolean;
     getOpened(handle: string): boolean;
