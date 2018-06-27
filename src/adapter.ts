@@ -190,7 +190,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
         });
     }
 
-    private getCapabilities(device: Device): Promise<any> {
+    private getCapabilities(device: Device): Promise<Array<any>> {
         return new Promise((resolve, reject) => {
             try {
                 device.open();
@@ -311,7 +311,11 @@ export class USBAdapter extends EventEmitter implements Adapter {
             const vendor = capability.data.readUInt8(19);
             const page = capability.data.readUInt8(20);
 
-            device.open();
+            try {
+                device.open();
+            } catch (_e) {
+                resolve("");
+            }
             device.controlTransfer(CONSTANTS.URL_REQUEST_TYPE, vendor, page, CONSTANTS.URL_REQUEST_INDEX, 64, (error, buffer) => {
                 device.close();
 
@@ -408,7 +412,11 @@ export class USBAdapter extends EventEmitter implements Adapter {
 
     private getStringDescriptor(device: Device, index: number): Promise<string> {
         return new Promise((resolve, reject) => {
-            device.open();
+            try {
+                device.open();
+            } catch (_e) {
+                resolve("");
+            }
             device.getStringDescriptor(index, (error, buffer) => {
                 device.close();
                 if (error) return reject(error);
@@ -546,9 +554,13 @@ export class USBAdapter extends EventEmitter implements Adapter {
     }
 
     public open(handle: string): Promise<void> {
-        return new Promise((resolve, _reject) => {
+        return new Promise((resolve, reject) => {
             const device = this.getDevice(handle);
-            device.open();
+            try {
+                device.open();
+            } catch (_e) {
+                reject();
+            }
             resolve();
         });
     }
