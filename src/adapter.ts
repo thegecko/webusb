@@ -45,7 +45,8 @@ import {
     LIBUSB_REQUEST_TYPE_STANDARD,
     LIBUSB_REQUEST_TYPE_CLASS,
     LIBUSB_REQUEST_TYPE_VENDOR,
-    EndpointDescriptor
+    EndpointDescriptor,
+    DeviceDescriptor
 } from "usb";
 import {
     USBControlTransferParameters,
@@ -191,7 +192,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
     }
 
     private getCapabilities(device: Device): Promise<Array<any>> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _reject) => {
             try {
                 device.open();
             } catch (_e) {
@@ -204,7 +205,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
                     device.close();
                 // tslint:disable-next-line:no-empty
                 } catch (_e) {}
-                if (error) return reject(error);
+                if (error) return resolve([]);
                 resolve(capabilities);
             });
         });
@@ -342,13 +343,25 @@ export class USBAdapter extends EventEmitter implements Adapter {
         return new Promise((resolve, _reject) => {
             const device = this.devices[handle].device;
             const url = this.devices[handle].url;
-            const configs: Array<ConfigDescriptor> = device.allConfigDescriptors;
+
+            let configs: Array<ConfigDescriptor> = null;
+            let configDescriptor: ConfigDescriptor = null;
+            let deviceDescriptor: DeviceDescriptor = null;
+
+            try {
+                configs = device.allConfigDescriptors;
+                configDescriptor = device.configDescriptor;
+                deviceDescriptor = device.deviceDescriptor;
+            } catch (_e) {
+                return resolve(null);
+            }
+
             if (!configs) return resolve(null);
 
             return this.serialDevicePromises(this.configToUSBConfiguration, device, configs)
             .then(configurations => {
 
-                if (!device.deviceDescriptor) {
+                if (!deviceDescriptor) {
                     return resolve(new USBDevice({
                         _handle: device.deviceAddress.toString(),
                         url: url,
@@ -356,31 +369,30 @@ export class USBAdapter extends EventEmitter implements Adapter {
                     }));
                 }
 
-                const descriptor = device.deviceDescriptor;
-                const deviceVersion = this.decodeVersion(descriptor.bcdDevice);
-                const usbVersion = this.decodeVersion(descriptor.bcdUSB);
+                const deviceVersion = this.decodeVersion(deviceDescriptor.bcdDevice);
+                const usbVersion = this.decodeVersion(deviceDescriptor.bcdUSB);
                 let manufacturerName = null;
                 let productName = null;
 
-                return this.getStringDescriptor(device, descriptor.iManufacturer)
+                return this.getStringDescriptor(device, deviceDescriptor.iManufacturer)
                 .then(name => {
                     manufacturerName = name;
-                    return this.getStringDescriptor(device, descriptor.iProduct);
+                    return this.getStringDescriptor(device, deviceDescriptor.iProduct);
                 })
                 .then(name => {
                     productName = name;
-                    return this.getStringDescriptor(device, descriptor.iSerialNumber);
+                    return this.getStringDescriptor(device, deviceDescriptor.iSerialNumber);
                 })
                 .then(serialNumber => {
                     const props: Partial<USBDevice> = {
                         _handle: device.deviceAddress.toString(),
-                        _maxPacketSize: descriptor.bMaxPacketSize0,
+                        _maxPacketSize: deviceDescriptor.bMaxPacketSize0,
                         url: url,
-                        deviceClass: descriptor.bDeviceClass,
-                        deviceSubclass: descriptor.bDeviceSubClass,
-                        deviceProtocol: descriptor.bDeviceProtocol,
-                        productId: descriptor.idProduct,
-                        vendorId: descriptor.idVendor,
+                        deviceClass: deviceDescriptor.bDeviceClass,
+                        deviceSubclass: deviceDescriptor.bDeviceSubClass,
+                        deviceProtocol: deviceDescriptor.bDeviceProtocol,
+                        productId: deviceDescriptor.idProduct,
+                        vendorId: deviceDescriptor.idVendor,
                         deviceVersionMajor: deviceVersion.major,
                         deviceVersionMinor: deviceVersion.minor,
                         deviceVersionSubminor: deviceVersion.sub,
@@ -391,7 +403,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
                         productName: productName,
                         serialNumber: serialNumber,
                         configurations: configurations,
-                        _currentConfiguration: device.configDescriptor.bConfigurationValue
+                        _currentConfiguration: configDescriptor.bConfigurationValue
                     };
                     return resolve(new USBDevice(props));
                 });
