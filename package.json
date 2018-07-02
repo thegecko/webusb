@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "@types/node": "^8.0.54",
-    "@types/usb": "^1.1.5",
+    "@types/usb": "^1.1.6",
     "del": "^3.0.0",
     "gulp": "^3.9.1",
     "gulp-sourcemaps": "^2.6.1",
