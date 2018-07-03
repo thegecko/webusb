@@ -349,9 +349,14 @@ export class USBAdapter extends EventEmitter implements Adapter {
             let deviceDescriptor: DeviceDescriptor = null;
 
             try {
-                configs = device.allConfigDescriptors;
                 configDescriptor = device.configDescriptor;
                 deviceDescriptor = device.deviceDescriptor;
+            } catch (_e) {
+                return resolve(null);
+            }
+
+            try {
+                configs = device.allConfigDescriptors;
             } catch (_e) {
                 return resolve(null);
             }
