@@ -302,8 +302,8 @@ export class USBDevice {
 
             const iface = this.configuration.interfaces.find(usbInterface => usbInterface.interfaceNumber === interfaceNumber);
             if (!iface) return reject(new Error("claimInterface error: interface not found"));
-
-            if (!this.opened || iface.claimed) return reject(new Error("claimInterface error: invalid state"));
+            if (!this.opened) return reject(new Error("claimInterface error: invalid state"));
+            if (iface.claimed) return resolve();
 
             iface.claimInterface()
             .then(resolve)
@@ -324,8 +324,8 @@ export class USBDevice {
 
             const iface = this.configuration.interfaces.find(usbInterface => usbInterface.interfaceNumber === interfaceNumber);
             if (!iface) return reject(new Error("releaseInterface error: interface not found"));
-
-            if (!this.opened || !iface.claimed) return reject(new Error("releaseInterface error: invalid state"));
+            if (!this.opened) return reject(new Error("releaseInterface error: invalid state"));
+            if (!iface.claimed) return resolve();
 
             iface.releaseInterface()
             .then(resolve)
