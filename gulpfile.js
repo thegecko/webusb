@@ -17,7 +17,7 @@ const docsDir = "docs";
 const nodeDir = "lib";
 const typesDir = "types";
 
-let watching = false;
+var watching = false;
 
 function handleError() {
     if (watching) this.emit("end");
@@ -67,7 +67,7 @@ gulp.task("doc", function() {
 
 // Build TypeScript source into CommonJS Node modules
 gulp.task("compile", ["clean"], function() {
-    let tsResult = gulp.src(srcFiles)
+    var tsResult = gulp.src(srcFiles)
     .pipe(gulpSourcemaps.init())
     .pipe(gulpTypescript.createProject("tsconfig.json")())
     .on("error", handleError);
