@@ -570,8 +570,8 @@ export class USBAdapter extends EventEmitter implements Adapter {
             const device = this.getDevice(handle);
             try {
                 device.open();
-            } catch (_e) {
-                reject();
+            } catch (error) {
+                return reject(error);
             }
             resolve();
         });
