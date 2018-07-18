@@ -205,6 +205,19 @@ export class USBAdapter extends EventEmitter implements Adapter {
     }
 
     private loadDevice(device: Device, retries: number = 0): Promise<Device> {
+
+        // Early guard against unsupported USB devices
+        try {
+            // tslint:disable-next-line:no-unused-expression
+            device.configDescriptor;
+            // tslint:disable-next-line:no-unused-expression
+            device.allConfigDescriptors;
+            // tslint:disable-next-line:no-unused-expression
+            device.deviceDescriptor;
+        } catch (_error) {
+            return Promise.resolve(null);
+        }
+
         return this.getCapabilities(device, retries)
         .then(capabilities => this.getWebCapability(capabilities))
         .then(capability => {
@@ -221,17 +234,6 @@ export class USBAdapter extends EventEmitter implements Adapter {
 
     private getCapabilities(device: Device, retries: number): Promise<Array<any>> {
         return new Promise((resolve, _reject) => {
-
-            try {
-                // tslint:disable-next-line:no-unused-expression
-                device.configDescriptor;
-                // tslint:disable-next-line:no-unused-expression
-                device.allConfigDescriptors;
-                // tslint:disable-next-line:no-unused-expression
-                device.deviceDescriptor;
-            } catch (_error) {
-                return resolve([]);
-            }
 
             this.openDevice(device, retries)
             .then(() => {
