@@ -66,6 +66,9 @@ import { USBDirection } from "./enums";
  * @hidden
  */
 const DEFAULT_DELAY_TIMEOUT = 200;
+/**
+ * @hidden
+ */
 const DEFAULT_RETRY_COUNT = 10;
 
 /**
