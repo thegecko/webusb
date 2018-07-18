@@ -65,6 +65,12 @@ import { USBDirection } from "./enums";
 /**
  * @hidden
  */
+const DEFAULT_DELAY_TIMEOUT = 200;
+const DEFAULT_RETRY_COUNT = 10;
+
+/**
+ * @hidden
+ */
 const CONSTANTS = {
     WEB_UUID: "3408b638-09a9-47a0-8bfd-a0768815b665",
     LIBUSB_DT_BOS: 0x0f,
@@ -117,7 +123,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
         super();
 
         on("attach", device => {
-            this.loadDevice(device)
+            this.loadDevice(device, DEFAULT_RETRY_COUNT)
             .then(loadedDevice => {
                 if (loadedDevice) {
                     this.devicetoUSBDevice(loadedDevice.deviceAddress.toString())
@@ -171,13 +177,35 @@ export class USBAdapter extends EventEmitter implements Adapter {
         return descriptors.reduce(reducer.bind(this), Promise.resolve([]));
     }
 
+    private delay(timeout: number = DEFAULT_DELAY_TIMEOUT): Promise<void> {
+        return new Promise((resolve, _reject) => {
+            setTimeout(resolve, timeout);
+        });
+    }
+
+    private retryPromise(fn: () => Promise<any>, retries: number = 0, timeout: number = DEFAULT_DELAY_TIMEOUT): Promise<void> {
+        return new Promise((resolve, reject) => {
+            fn()
+            .then(resolve)
+            .catch(error => {
+                if (retries === 0) {
+                    return reject(error);
+                }
+
+                return this.delay(timeout)
+                .then(() => this.retryPromise(fn, retries--, timeout))
+                .then(resolve);
+            });
+        });
+    }
+
     private loadDevices(): Promise<Array<Device>> {
         const devices = getDeviceList();
         return this.serialPromises(this.loadDevice, devices);
     }
 
-    private loadDevice(device: Device): Promise<Device> {
-        return this.getCapabilities(device)
+    private loadDevice(device: Device, retries: number = 0): Promise<Device> {
+        return this.getCapabilities(device, retries)
         .then(capabilities => this.getWebCapability(capabilities))
         .then(capability => {
             return this.getWebUrl(device, capability)
@@ -191,22 +219,35 @@ export class USBAdapter extends EventEmitter implements Adapter {
         });
     }
 
-    private getCapabilities(device: Device): Promise<Array<any>> {
+    private getCapabilities(device: Device, retries: number): Promise<Array<any>> {
         return new Promise((resolve, _reject) => {
+
             try {
-                device.open();
-            } catch (_e) {
-                resolve([]);
+                // tslint:disable-next-line:no-unused-expression
+                device.configDescriptor;
+                // tslint:disable-next-line:no-unused-expression
+                device.allConfigDescriptors;
+                // tslint:disable-next-line:no-unused-expression
+                device.deviceDescriptor;
+            } catch (_error) {
+                return resolve([]);
             }
-            // device.getCapabilities((error, capabilities) => {
-            this.getDeviceCapabilities(device, (error, capabilities) => {
-                try {
-                    // Older macs (<10.12) can error with some host devices during a close at this point
-                    device.close();
-                // tslint:disable-next-line:no-empty
-                } catch (_e) {}
-                if (error) return resolve([]);
-                resolve(capabilities);
+
+            this.openDevice(device, retries)
+            .then(() => {
+                // device.getCapabilities((error, capabilities) => {
+                this.getDeviceCapabilities(device, (error, capabilities) => {
+                    try {
+                        // Older macs (<10.12) can error with some host devices during a close at this point
+                        device.close();
+                    // tslint:disable-next-line:no-empty
+                    } catch (_error) {}
+                    if (error) return resolve([]);
+                    resolve(capabilities);
+                });
+            })
+            .catch(_error => {
+                resolve([]);
             });
         });
     }
@@ -312,29 +353,30 @@ export class USBAdapter extends EventEmitter implements Adapter {
             const vendor = capability.data.readUInt8(19);
             const page = capability.data.readUInt8(20);
 
-            try {
-                device.open();
-            } catch (_e) {
+            this.openDevice(device)
+            .then(() => {
+                device.controlTransfer(CONSTANTS.URL_REQUEST_TYPE, vendor, page, CONSTANTS.URL_REQUEST_INDEX, 64, (error, buffer) => {
+                    device.close();
+
+                    if (error) {
+                        // An error may be due to the URL not existing
+                        if (suppressErrors) return resolve(null);
+                        else return reject(error);
+                    }
+
+                    // const length = buffer.readUInt8(0);
+                    // const type = buffer.readUInt8(1);
+                    let url = buffer.toString("utf8", 3);
+
+                    const scheme = buffer.readUInt8(2); // 0 - http, 1 - https, 255 - in url
+                    if (scheme === 0) url = "http://" + url;
+                    if (scheme === 1) url = "https://" + url;
+
+                    resolve(url);
+                });
+            })
+            .catch(_error => {
                 resolve("");
-            }
-            device.controlTransfer(CONSTANTS.URL_REQUEST_TYPE, vendor, page, CONSTANTS.URL_REQUEST_INDEX, 64, (error, buffer) => {
-                device.close();
-
-                if (error) {
-                    // An error may be due to the URL not existing
-                    if (suppressErrors) return resolve(null);
-                    else return reject(error);
-                }
-
-                // const length = buffer.readUInt8(0);
-                // const type = buffer.readUInt8(1);
-                let url = buffer.toString("utf8", 3);
-
-                const scheme = buffer.readUInt8(2); // 0 - http, 1 - https, 255 - in url
-                if (scheme === 0) url = "http://" + url;
-                if (scheme === 1) url = "https://" + url;
-
-                resolve(url);
             });
         });
     }
@@ -352,7 +394,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
                 configDescriptor = device.configDescriptor;
                 configs = device.allConfigDescriptors;
                 deviceDescriptor = device.deviceDescriptor;
-            } catch (_e) {
+            } catch (_error) {
                 return resolve(null);
             }
 
@@ -407,7 +449,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
                     };
                     return resolve(new USBDevice(props));
                 });
-            }).catch(_e => {
+            }).catch(_error => {
                 resolve(null);
             });
         });
@@ -424,15 +466,16 @@ export class USBAdapter extends EventEmitter implements Adapter {
 
     private getStringDescriptor(device: Device, index: number): Promise<string> {
         return new Promise((resolve, reject) => {
-            try {
-                device.open();
-            } catch (_e) {
+            this.openDevice(device)
+            .then(() => {
+                device.getStringDescriptor(index, (error, buffer) => {
+                    device.close();
+                    if (error) return reject(error);
+                    resolve(buffer.toString());
+                });
+            })
+            .catch(_error => {
                 resolve("");
-            }
-            device.getStringDescriptor(index, (error, buffer) => {
-                device.close();
-                if (error) return reject(error);
-                resolve(buffer.toString());
             });
         });
     }
@@ -548,6 +591,19 @@ export class USBAdapter extends EventEmitter implements Adapter {
         return recipient | requestType | direction;
     }
 
+    private openDevice(device: Device, retries: number = 0): Promise<void> {
+        return this.retryPromise(() => {
+            return new Promise<void>((resolve, reject) => {
+                try {
+                    device.open();
+                } catch (error) {
+                    return reject(error);
+                }
+                resolve();
+            });
+        }, retries);
+    }
+
     public getConnected(handle: string): boolean {
         return this.getDevice(handle) !== null;
     }
@@ -566,15 +622,8 @@ export class USBAdapter extends EventEmitter implements Adapter {
     }
 
     public open(handle: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const device = this.getDevice(handle);
-            try {
-                device.open();
-            } catch (error) {
-                return reject(error);
-            }
-            resolve();
-        });
+        const device = this.getDevice(handle);
+        return this.openDevice(device);
     }
 
     public close(handle: string): Promise<void> {
