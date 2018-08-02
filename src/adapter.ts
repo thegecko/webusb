@@ -129,7 +129,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
             this.loadDevice(device, DEFAULT_RETRY_COUNT)
             .then(loadedDevice => {
                 if (loadedDevice) {
-                    this.devicetoUSBDevice(loadedDevice.deviceAddress.toString())
+                    this.devicetoUSBDevice(device.busNumber.toString() + "." + device.deviceAddress.toString())
                     .then(usbDevice => {
                         if (usbDevice) {
                             this.emit(USBAdapter.EVENT_DEVICE_CONNECT, usbDevice);
@@ -141,7 +141,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
 
         on("detach", device => {
             if (device.deviceAddress) {
-                const address = device.deviceAddress.toString();
+                const address = device.busNumber.toString() + "." + device.deviceAddress.toString();
                 if (this.devices[address]) {
                     delete this.devices[address];
                     this.emit(USBAdapter.EVENT_DEVICE_DISCONNECT, address);
@@ -226,7 +226,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
         .then(capability => {
             return this.getWebUrl(device, capability)
             .then(url => {
-                this.devices[device.deviceAddress.toString()] = {
+                this.devices[device.busNumber.toString() + "." + device.deviceAddress.toString()] = {
                     device: device,
                     url: url
                 };
@@ -410,7 +410,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
 
                 if (!deviceDescriptor) {
                     return resolve(new USBDevice({
-                        _handle: device.deviceAddress.toString(),
+                        _handle: device.busNumber.toString() + "." + device.deviceAddress.toString(),
                         url: url,
                         configurations: configurations
                     }));
@@ -432,7 +432,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
                 })
                 .then(serialNumber => {
                     const props: Partial<USBDevice> = {
-                        _handle: device.deviceAddress.toString(),
+                        _handle: device.busNumber.toString() + "." + device.deviceAddress.toString(),
                         _maxPacketSize: deviceDescriptor.bMaxPacketSize0,
                         url: url,
                         deviceClass: deviceDescriptor.bDeviceClass,
@@ -555,7 +555,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
         return this.serialDevicePromises(this.interfaceToUSBAlternateInterface, device, descriptors)
         .then(alternates => {
             return new USBInterface({
-                _handle: device.deviceAddress.toString(),
+                _handle: device.busNumber.toString() + "." + device.deviceAddress.toString(),
                 interfaceNumber: descriptors[0].bInterfaceNumber,
                 alternates: alternates
             });
