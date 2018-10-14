@@ -510,7 +510,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
 
     private getEndpoint(device: Device, direction: USBDirection, endpointNumber: number): Endpoint {
         let endpoint: Endpoint = null;
-        const address = endpointNumber & (direction === "in" ? LIBUSB_ENDPOINT_IN : LIBUSB_ENDPOINT_OUT);
+        const address = endpointNumber | (direction === "in" ? LIBUSB_ENDPOINT_IN : LIBUSB_ENDPOINT_OUT);
 
         device.interfaces.some(iface => {
             const epoint = iface.endpoint(address);
