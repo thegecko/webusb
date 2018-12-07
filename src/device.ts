@@ -375,8 +375,6 @@ export class USBDevice {
             const setupError = this.setupInvalid(setup);
             if (setupError) return reject(new Error(`controlTransferIn error: ${setupError}`));
 
-            if (length > this._maxPacketSize) return reject(new Error("controlTransferIn error: length exceeds the maximum packet size"));
-
             adapter.controlTransferIn(this._handle, setup, length)
             .then(resolve)
             .catch(error => {
@@ -401,8 +399,6 @@ export class USBDevice {
 
             const setupError = this.setupInvalid(setup);
             if (setupError) return reject(new Error(`controlTransferOut error: ${setupError}`));
-
-            if (data && data.byteLength > this._maxPacketSize) return reject(new Error("controlTransferOut error: length exceeds the maximum packet size"));
 
             adapter.controlTransferOut(this._handle, setup, data)
             .then(resolve)
