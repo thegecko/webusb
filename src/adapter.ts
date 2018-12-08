@@ -500,11 +500,10 @@ export class USBAdapter extends EventEmitter implements Adapter {
     }
 
     private bufferSourceToBuffer(bufferSource: ArrayBuffer | ArrayBufferView): Buffer {
-        function isView(source: ArrayBuffer | ArrayBufferView): source is ArrayBufferView {
-            return (source as ArrayBufferView).buffer !== undefined;
-        }
+        const arrayBuffer = ArrayBuffer.isView(bufferSource)
+            ? bufferSource.buffer.slice(bufferSource.byteOffset, bufferSource.byteOffset + bufferSource.byteLength)
+            : bufferSource;
 
-        const arrayBuffer = isView(bufferSource) ? bufferSource.buffer : bufferSource;
         return new Buffer(arrayBuffer);
     }
 
