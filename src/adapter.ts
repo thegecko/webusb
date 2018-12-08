@@ -725,7 +725,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
     public clearHalt(handle: string, direction: USBDirection, endpointNumber: number): Promise<void> {
         return new Promise((resolve, reject) => {
             const device = this.getDevice(handle);
-            const wIndex = endpointNumber & (direction === "in" ? LIBUSB_ENDPOINT_IN : LIBUSB_ENDPOINT_OUT);
+            const wIndex = endpointNumber | (direction === "in" ? LIBUSB_ENDPOINT_IN : LIBUSB_ENDPOINT_OUT);
             device.controlTransfer(LIBUSB_RECIPIENT_ENDPOINT, CONSTANTS.CLEAR_FEATURE, CONSTANTS.ENDPOINT_HALT, wIndex, 0, error => {
                 if (error) return reject(error);
                 resolve();
