@@ -217,7 +217,6 @@ export class USBDevice {
             const interfaceNumber = setup.index & 0xff; // lower 8 bits
             const iface = this.configuration.interfaces.find(usbInterface => usbInterface.interfaceNumber === interfaceNumber);
             if (!iface) return "interface not found";
-            if (!iface.claimed) return "invalid state";
 
         } else if (setup.recipient === "endpoint") {
             const endpointNumber = setup.index & 0x0f; // lower 4 bits
@@ -225,7 +224,6 @@ export class USBDevice {
 
             const result = this.getEndpoint(direction, endpointNumber);
             if (!result.endpoint) return "endpoint not found";
-            if (!result.iface.claimed) return "invalid state";
         }
     }
 
