@@ -698,7 +698,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
 
             device.controlTransfer(type, setup.request, setup.value, setup.index, length, (error, buffer) => {
                 if (error) {
-                    if (error.errno == LIBUSB_TRANSFER_STALL) {
+                    if (error.errno === LIBUSB_TRANSFER_STALL) {
                         return resolve({
                             status: "stall"
                         });
@@ -723,7 +723,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
 
             device.controlTransfer(type, setup.request, setup.value, setup.index, buffer, error => {
                 if (error) {
-                    if (error.errno == LIBUSB_TRANSFER_STALL) {
+                    if (error.errno === LIBUSB_TRANSFER_STALL) {
                         return resolve({
                             bytesWritten: 0,
                             status: "stall"
@@ -759,7 +759,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
 
             endpoint.transfer(length, (error, data) => {
                 if (error) {
-                    if (error.errno == LIBUSB_TRANSFER_STALL) {
+                    if (error.errno === LIBUSB_TRANSFER_STALL) {
                         return resolve({
                             status: "stall"
                         });
@@ -784,7 +784,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
 
             endpoint.transfer(buffer, error => {
                 if (error) {
-                    if (error.errno == LIBUSB_TRANSFER_STALL) {
+                    if (error.errno === LIBUSB_TRANSFER_STALL) {
                         return resolve({
                             bytesWritten: 0,
                             status: "stall"
