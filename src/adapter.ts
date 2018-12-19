@@ -36,6 +36,7 @@ import {
     LIBUSB_ENDPOINT_IN,
     LIBUSB_ENDPOINT_OUT,
     LIBUSB_REQUEST_GET_DESCRIPTOR,
+    LIBUSB_TRANSFER_STALL,
     LIBUSB_TRANSFER_TYPE_INTERRUPT,
     LIBUSB_TRANSFER_TYPE_BULK,
     LIBUSB_RECIPIENT_DEVICE,
@@ -696,7 +697,16 @@ export class USBAdapter extends EventEmitter implements Adapter {
             const type = this.controlTransferParamsToType(setup, LIBUSB_ENDPOINT_IN);
 
             device.controlTransfer(type, setup.request, setup.value, setup.index, length, (error, buffer) => {
-                if (error) return reject(error);
+                if (error) {
+                    if (error.errno === LIBUSB_TRANSFER_STALL) {
+                        return resolve({
+                            status: "stall"
+                        });
+                    }
+
+                    return reject(error);
+                }
+
                 resolve({
                     data: this.bufferToDataView(buffer),
                     status: "ok" // hack
@@ -712,7 +722,17 @@ export class USBAdapter extends EventEmitter implements Adapter {
             const buffer = data ? this.bufferSourceToBuffer(data) : new Buffer(0);
 
             device.controlTransfer(type, setup.request, setup.value, setup.index, buffer, error => {
-                if (error) return reject(error);
+                if (error) {
+                    if (error.errno === LIBUSB_TRANSFER_STALL) {
+                        return resolve({
+                            bytesWritten: 0,
+                            status: "stall"
+                        });
+                    }
+
+                    return reject(error);
+                }
+
                 resolve({
                     bytesWritten: buffer.byteLength, // hack, should be bytes actually written
                     status: "ok" // hack
@@ -738,7 +758,16 @@ export class USBAdapter extends EventEmitter implements Adapter {
             const endpoint = this.getInEndpoint(device, endpointNumber);
 
             endpoint.transfer(length, (error, data) => {
-                if (error) return reject(error);
+                if (error) {
+                    if (error.errno === LIBUSB_TRANSFER_STALL) {
+                        return resolve({
+                            status: "stall"
+                        });
+                    }
+
+                    return reject(error);
+                }
+
                 resolve({
                     data: this.bufferToDataView(data),
                     status: "ok" // hack
@@ -754,7 +783,17 @@ export class USBAdapter extends EventEmitter implements Adapter {
             const buffer = this.bufferSourceToBuffer(data);
 
             endpoint.transfer(buffer, error => {
-                if (error) return reject(error);
+                if (error) {
+                    if (error.errno === LIBUSB_TRANSFER_STALL) {
+                        return resolve({
+                            bytesWritten: 0,
+                            status: "stall"
+                        });
+                    }
+
+                    return reject(error);
+                }
+
                 resolve({
                     bytesWritten: buffer.byteLength, // hack, should be bytes actually written
                     status: "ok" // hack
