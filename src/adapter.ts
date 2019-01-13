@@ -36,6 +36,7 @@ import {
     LIBUSB_ENDPOINT_IN,
     LIBUSB_ENDPOINT_OUT,
     LIBUSB_REQUEST_GET_DESCRIPTOR,
+    LIBUSB_TRANSFER_OVERFLOW,
     LIBUSB_TRANSFER_STALL,
     LIBUSB_TRANSFER_TYPE_INTERRUPT,
     LIBUSB_TRANSFER_TYPE_BULK,
@@ -702,6 +703,10 @@ export class USBAdapter extends EventEmitter implements Adapter {
                         return resolve({
                             status: "stall"
                         });
+                    } else if (error.errno === LIBUSB_TRANSFER_OVERFLOW) {
+                        return resolve({
+                            status: "babble"
+                        });
                     }
 
                     return reject(error);
@@ -762,6 +767,10 @@ export class USBAdapter extends EventEmitter implements Adapter {
                     if (error.errno === LIBUSB_TRANSFER_STALL) {
                         return resolve({
                             status: "stall"
+                        });
+                    } else if (error.errno === LIBUSB_TRANSFER_OVERFLOW) {
+                        return resolve({
+                            status: "babble"
                         });
                     }
 

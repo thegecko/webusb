@@ -59,9 +59,9 @@ https://wicg.github.io/webusb/
 - [x] claimInterface()
 - [x] releaseInterface()
 - [x] selectAlternateInterface()
-- [x] controlTransferIn() - always returns `status` "ok"
+- [x] controlTransferIn()
 - [x] controlTransferOut() - always returns `status` "ok", `bytesWritten` always equals the initial buffer length
-- [x] transferIn() - always returns `status` "ok"
+- [x] transferIn()
 - [x] transferOut() - always returns `status` "ok", `bytesWritten` always equals the initial buffer length
 - [x] clearHalt()
 - [x] reset()
