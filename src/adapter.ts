@@ -714,7 +714,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
 
                 resolve({
                     data: this.bufferToDataView(buffer),
-                    status: "ok" // hack
+                    status: "ok"
                 });
             });
         });
@@ -779,7 +779,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
 
                 resolve({
                     data: this.bufferToDataView(data),
-                    status: "ok" // hack
+                    status: "ok"
                 });
             });
         });
