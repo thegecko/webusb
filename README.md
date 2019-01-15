@@ -60,9 +60,9 @@ https://wicg.github.io/webusb/
 - [x] releaseInterface()
 - [x] selectAlternateInterface()
 - [x] controlTransferIn()
-- [x] controlTransferOut() - always returns `status` "ok", `bytesWritten` always equals the initial buffer length
+- [x] controlTransferOut() - `bytesWritten` always equals the initial buffer length
 - [x] transferIn()
-- [x] transferOut() - always returns `status` "ok", `bytesWritten` always equals the initial buffer length
+- [x] transferOut() - `bytesWritten` always equals the initial buffer length
 - [x] clearHalt()
 - [x] reset()
 - [ ] isochronousTransferIn() - currently unsupported in node-usb
