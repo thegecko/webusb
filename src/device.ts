@@ -384,7 +384,7 @@ export class USBDevice {
     /**
      * Undertake a control transfer out to the device
      *
-     * __Note:__ The transfer result currently has a status always set to "ok" and the bytesWritten always set to the length of the data
+     * __Note:__ The bytesWritten always set to the length of the data
      *
      * @param setup The USB control transfer parameters
      * @param data The data to transfer
@@ -456,7 +456,7 @@ export class USBDevice {
     /**
      * Undertake a transfer out to the device
      *
-     * __Note:__ The transfer result currently has a status always set to "ok" and the bytesWritten always set to the length of the data
+     * __Note:__ The bytesWritten always set to the length of the data
      *
      * @param endpointNumber The number of the endpoint to transfer to
      * @param data The data to transfer
