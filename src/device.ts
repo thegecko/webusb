@@ -361,8 +361,6 @@ export class USBDevice {
     /**
      * Undertake a control transfer in from the device
      *
-     * __Note:__ The transfer result currently has a status always set to "ok"
-     *
      * @param setup The USB control transfer parameters
      * @param length The amount of data to transfer
      * @returns Promise containing a result
@@ -433,8 +431,6 @@ export class USBDevice {
 
     /**
      * Undertake a transfer in from the device
-     *
-     * __Note:__ The transfer result currently has a status always set to "ok"
      *
      * @param endpointNumber The number of the endpoint to transfer from
      * @param length The amount of data to transfer
