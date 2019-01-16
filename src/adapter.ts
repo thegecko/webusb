@@ -33,6 +33,7 @@ import {
     ConfigDescriptor,
     InterfaceDescriptor,
     on,
+    removeListener,
     LIBUSB_ENDPOINT_IN,
     LIBUSB_ENDPOINT_OUT,
     LIBUSB_REQUEST_GET_DESCRIPTOR,
@@ -127,7 +128,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
     constructor() {
         super();
 
-        on("attach", device => {
+        const attachCallback = device => {
             this.loadDevice(device, DEFAULT_RETRY_COUNT)
             .then(loadedDevice => {
                 if (loadedDevice) {
@@ -140,14 +141,42 @@ export class USBAdapter extends EventEmitter implements Adapter {
                     });
                 }
             });
-        });
+        };
 
-        on("detach", device => {
+        const detachCallback = device => {
             const handle = this.getDeviceHandle(device);
 
             if (handle && this.devices[handle]) {
                 delete this.devices[handle];
                 this.emit(USBAdapter.EVENT_DEVICE_DISCONNECT, handle);
+            }
+        };
+
+        this.on("newListener", event => {
+            const listenerCount = this.listenerCount(event);
+
+            if (listenerCount !== 0) {
+                return;
+            }
+
+            if (event === USBAdapter.EVENT_DEVICE_CONNECT) {
+                on("attach", attachCallback);
+            } else if (event === USBAdapter.EVENT_DEVICE_DISCONNECT) {
+                on("detach", detachCallback);
+            }
+        });
+
+        this.on("removeListener", event => {
+            const listenerCount = this.listenerCount(event);
+
+            if (listenerCount !== 0) {
+                return;
+            }
+
+            if (event === USBAdapter.EVENT_DEVICE_CONNECT) {
+                removeListener("attach", attachCallback);
+            } else if (event === USBAdapter.EVENT_DEVICE_DISCONNECT) {
+                removeListener("detach", detachCallback);
             }
         });
     }
