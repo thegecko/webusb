@@ -17,26 +17,29 @@ const docsDir = "docs";
 const nodeDir = "lib";
 const typesDir = "types";
 
-var watching = false;
+let watching = false;
 
-function handleError() {
+function handleError(cb) {
     if (watching) this.emit("end");
     else process.exit(1);
+    cb();
 }
 
 // Set watching
-gulp.task("setWatch", function() {
+function setWatch(cb) {
     watching = true;
-});
+    cb();
+}
 
 // Clear built directories
-gulp.task("clean", function() {
-    if (!watching) return del([nodeDir, typesDir]);
-});
+function clean(cb) {
+    if (!watching) del([nodeDir, typesDir]);
+    cb();
+}
 
 // Lint the source
-gulp.task("lint", function() {
-    gulp.src(srcFiles)
+function lint() {
+    return gulp.src(srcFiles)
     .pipe(gulpTslint({
         program: tslint.Linter.createProgram("./tsconfig.json"),
         formatter: "stylish"
@@ -44,10 +47,10 @@ gulp.task("lint", function() {
     .pipe(gulpTslint.report({
         emitError: !watching
     }))
-});
+}
 
 // Create documentation
-gulp.task("doc", function() {
+function doc() {
     return gulp.src(srcFiles)
     .pipe(gulpTypedoc({
         name: name,
@@ -63,10 +66,10 @@ gulp.task("doc", function() {
         toc: docsToc
     }))
     .on("error", handleError);
-});
+}
 
 // Build TypeScript source into CommonJS Node modules
-gulp.task("compile", ["clean"], function() {
+function compile() {
     var tsResult = gulp.src(srcFiles)
     .pipe(gulpSourcemaps.init())
     .pipe(gulpTypescript.createProject("tsconfig.json")())
@@ -78,10 +81,10 @@ gulp.task("compile", ["clean"], function() {
         })).pipe(gulp.dest(nodeDir)),
         tsResult.dts.pipe(gulp.dest(typesDir))
     ]);
-});
+}
 
-gulp.task("watch", ["setWatch", "default"], function() {
-    gulp.watch(srcFiles, ["lint", "compile"]);
+exports.default = gulp.series(lint, doc, clean, compile);
+exports.watch = gulp.series(setWatch, exports.default, function(cb) {
+    gulp.watch(srcFiles, gulp.series(lint, clean, compile));
+    cb();
 });
-
-gulp.task("default", ["lint", "doc", "compile"]);
