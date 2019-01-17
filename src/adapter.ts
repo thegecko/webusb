@@ -510,13 +510,12 @@ export class USBAdapter extends EventEmitter implements Adapter {
     }
 
     private getStringDescriptor(device: Device, index: number): Promise<string> {
-        return new Promise((resolve, reject) => {
+        return new Promise(resolve => {
             this.openDevice(device)
             .then(() => {
                 device.getStringDescriptor(index, (error, buffer) => {
                     device.close();
-                    if (error) return reject(error);
-                    resolve(buffer.toString());
+                    resolve(error ? "" : buffer.toString());
                 });
             })
             .catch(_error => {
