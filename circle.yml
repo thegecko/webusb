@@ -1,6 +1,6 @@
 machine:
   node:
-    version: 4.8.0
+    version: 6.15.0
   environment:
     LIVE_BRANCH: gh-pages
 
