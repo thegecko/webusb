@@ -36,7 +36,6 @@ import {
     removeListener,
     LIBUSB_ENDPOINT_IN,
     LIBUSB_ENDPOINT_OUT,
-    LIBUSB_REQUEST_GET_DESCRIPTOR,
     LIBUSB_TRANSFER_OVERFLOW,
     LIBUSB_TRANSFER_STALL,
     LIBUSB_TRANSFER_TYPE_INTERRUPT,
@@ -49,7 +48,8 @@ import {
     LIBUSB_REQUEST_TYPE_CLASS,
     LIBUSB_REQUEST_TYPE_VENDOR,
     EndpointDescriptor,
-    DeviceDescriptor
+    DeviceDescriptor,
+    Capability
 } from "usb";
 import {
     USBControlTransferParameters,
@@ -275,13 +275,12 @@ export class USBAdapter extends EventEmitter implements Adapter {
         });
     }
 
-    private getCapabilities(device: Device, retries: number): Promise<Array<any>> {
+    private getCapabilities(device: Device, retries: number): Promise<Array<Capability>> {
         return new Promise((resolve, _reject) => {
 
             this.openDevice(device, retries)
             .then(() => {
-                // device.getCapabilities((error, capabilities) => {
-                this.getDeviceCapabilities(device, (error, capabilities) => {
+                device.getCapabilities((error, capabilities) => {
                     try {
                         // Older macs (<10.12) can error with some host devices during a close at this point
                         device.close();
@@ -297,69 +296,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
         });
     }
 
-    private getDeviceCapabilities(device: Device, callback: (error: string, capabilities: Array<any>) => any): void {
-        const capabilities = [];
-
-        this.getBosDescriptor(device, (error, descriptor) => {
-            if (error) return callback(error, null);
-
-            const len = descriptor ? descriptor.capabilities.length : 0;
-            for (let i = 0; i < len; i++) {
-                capabilities.push({
-                    device: device,
-                    id: i,
-                    descriptor: descriptor.capabilities[i],
-                    type: descriptor.capabilities[i].bDevCapabilityType,
-                    data: descriptor.capabilities[i].dev_capability_data
-                });
-            }
-
-            callback(undefined, capabilities);
-        });
-    }
-
-    private getBosDescriptor(device: Device, callback: (error: string, descriptor: any) => any) {
-
-        if (device.deviceDescriptor.bcdUSB < CONSTANTS.USB_VERSION) {
-            // BOS is only supported from USB 2.0.1
-            return callback(undefined, null);
-        }
-
-        device.controlTransfer(LIBUSB_ENDPOINT_IN, LIBUSB_REQUEST_GET_DESCRIPTOR, (CONSTANTS.LIBUSB_DT_BOS << 8), 0, CONSTANTS.LIBUSB_DT_BOS_SIZE, (error1, buffer1) => {
-            if (error1) return callback(undefined, null);
-
-            const totalLength = buffer1.readUInt16LE(2);
-            device.controlTransfer(LIBUSB_ENDPOINT_IN, LIBUSB_REQUEST_GET_DESCRIPTOR, (CONSTANTS.LIBUSB_DT_BOS << 8), 0, totalLength, (error, buffer) => {
-                if (error) return callback(undefined, null);
-
-                const descriptor = {
-                    bLength: buffer.readUInt8(0),
-                    bDescriptorType: buffer.readUInt8(1),
-                    wTotalLength: buffer.readUInt16LE(2),
-                    bNumDeviceCaps: buffer.readUInt8(4),
-                    capabilities: []
-                };
-
-                let i = CONSTANTS.LIBUSB_DT_BOS_SIZE;
-                while (i < descriptor.wTotalLength) {
-                    const capability: any = {
-                        bLength: buffer.readUInt8(i + 0),
-                        bDescriptorType: buffer.readUInt8(i + 1),
-                        bDevCapabilityType: buffer.readUInt8(i + 2)
-                    };
-
-                    capability.dev_capability_data = buffer.slice(i + 3, i + capability.bLength);
-                    descriptor.capabilities.push(capability);
-                    i += capability.bLength;
-                }
-
-                // Cache descriptor
-                callback(undefined, descriptor);
-            });
-        });
-    }
-
-    private getWebCapability(capabilities: any): any {
+    private getWebCapability(capabilities: Array<Capability>): Capability {
         const platformCapabilities = capabilities.filter(capability => {
             return capability.type === 5;
         });
@@ -391,7 +328,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
         return `${data1}-${data2}-${data3}-${data4.join("")}-${data5.join("")}`;
     }
 
-    private getWebUrl(device: Device, capability: any, suppressErrors: boolean = true): Promise<string> {
+    private getWebUrl(device: Device, capability: Capability, suppressErrors: boolean = true): Promise<string> {
         return new Promise((resolve, reject) => {
             if (!capability || !capability.data || capability.data.byteLength < 20) return resolve(null);
 
