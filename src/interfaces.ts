@@ -33,7 +33,7 @@ export interface USBOptions {
     /**
      * A `device found` callback function to allow the user to select a device
      */
-    devicesFound?: (devices: Array<USBDevice>, selectFn: (device: USBDevice) => void) => USBDevice;
+    devicesFound?: (devices: Array<USBDevice>, selectFn?: (device: USBDevice) => void) => USBDevice | void;
 }
 
 /**

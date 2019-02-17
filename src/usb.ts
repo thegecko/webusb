@@ -45,7 +45,7 @@ export class USB extends EventDispatcher {
     public static EVENT_DEVICE_DISCONNECT: string = "disconnect";
 
     private allowedDevices: Array<USBDevice> = [];
-    private devicesFound: (devices: Array<USBDevice>, selectFn: (device: USBDevice) => void) => USBDevice = null;
+    private devicesFound: (devices: Array<USBDevice>, selectFn?: (device: USBDevice) => void) => USBDevice | void;
 
     /**
      * USB constructor
