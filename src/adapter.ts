@@ -471,7 +471,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
             ? bufferSource.buffer.slice(bufferSource.byteOffset, bufferSource.byteOffset + bufferSource.byteLength)
             : bufferSource;
 
-        return new Buffer(arrayBuffer);
+        return Buffer.from(arrayBuffer);
     }
 
     private getEndpoint(device: Device, direction: USBDirection, endpointNumber: number): Endpoint {
