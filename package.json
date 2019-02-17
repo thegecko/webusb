@@ -33,7 +33,7 @@
     "merge2": "^1.2.0",
     "tslint": "^5.9.1",
     "tslint-eslint-rules": "^4.1.1",
-    "typedoc": "^0.9.0",
+    "typedoc": "^0.14.2",
     "typescript": "~2.6.2"
   },
   "dependencies": {
