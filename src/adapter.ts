@@ -485,6 +485,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
                 endpoint = epoint;
                 return true;
             }
+            return false;
         });
 
         return endpoint;
