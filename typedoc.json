@@ -1,6 +1,6 @@
 {
     "name": "Node WebUSB",
-    "readme": "./README.md",
+    "readme": "./documentation.md",
     "theme": "./docs-theme",
     "module": "commonjs",
     "target": "es6",
