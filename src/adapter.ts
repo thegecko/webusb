@@ -236,7 +236,8 @@ export class USBAdapter extends EventEmitter implements Adapter {
 
                 return this.delay(timeout)
                 .then(() => this.retryPromise(fn, --retries, timeout))
-                .then(resolve);
+                .then(resolve)
+                .catch(retryError => reject(retryError));
             });
         });
     }
