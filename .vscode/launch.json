@@ -8,8 +8,12 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "example",
+            "name": "Launch Example",
             "program": "${workspaceFolder}/examples/selector.js",
+            "outFiles": [
+                "${workspaceFolder}/examples/**/*.js",
+                "${workspaceFolder}/dist/**/*.js"
+            ],
             "sourceMaps": true
         }
     ]
