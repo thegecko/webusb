@@ -57,45 +57,21 @@ export class USB extends EventDispatcher {
         options = options || {};
         this.devicesFound = options.devicesFound;
 
-        const deviceConnectCallback = device => {
+        adapter.addListener(USBAdapter.EVENT_DEVICE_CONNECT, device => {
             if (this.replaceAllowedDevice(device)) {
                 this.emit(USB.EVENT_DEVICE_CONNECT, device);
             }
-        };
+        });
 
-        const deviceDisconnectCallback = handle => {
+        adapter.addListener(USBAdapter.EVENT_DEVICE_DISCONNECT, handle => {
             const allowedDevice = this.allowedDevices.find(allowedDevices => allowedDevices._handle === handle);
 
             if (allowedDevice) {
                 this.emit(USB.EVENT_DEVICE_DISCONNECT, allowedDevice);
-            }
-        };
 
-        this.on("newListener", event => {
-            const listenerCount = this.listenerCount(event);
-
-            if (listenerCount !== 0) {
-                return;
-            }
-
-            if (event === USB.EVENT_DEVICE_CONNECT) {
-                adapter.addListener(USBAdapter.EVENT_DEVICE_CONNECT, deviceConnectCallback);
-            } else if (event === USB.EVENT_DEVICE_DISCONNECT) {
-                adapter.addListener(USBAdapter.EVENT_DEVICE_DISCONNECT, deviceDisconnectCallback);
-            }
-        });
-
-        this.on("removeListener", event => {
-            const listenerCount = this.listenerCount(event);
-
-            if (listenerCount !== 0) {
-                return;
-            }
-
-            if (event === USB.EVENT_DEVICE_CONNECT) {
-                adapter.removeListener(USBAdapter.EVENT_DEVICE_CONNECT, deviceConnectCallback);
-            } else if (event === USB.EVENT_DEVICE_DISCONNECT) {
-                adapter.removeListener(USBAdapter.EVENT_DEVICE_DISCONNECT, deviceDisconnectCallback);
+                // Delete device from cache
+                const index = this.allowedDevices.indexOf(allowedDevice);
+                this.allowedDevices.splice(index, 1);
             }
         });
     }
