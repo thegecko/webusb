@@ -75,31 +75,25 @@ export class USBInterface {
     /**
      * @hidden
      */
-    public selectAlternateInterface(alternateSetting: number): Promise<void> {
-        return adapter.selectAlternateInterface(this._handle, this.interfaceNumber, alternateSetting)
-        .then(() => {
-            this._currentAlternate = alternateSetting;
-        });
+    public async selectAlternateInterface(alternateSetting: number): Promise<void> {
+        await adapter.selectAlternateInterface(this._handle, this.interfaceNumber, alternateSetting);
+        this._currentAlternate = alternateSetting;
     }
 
     /**
      * @hidden
      */
-    public claimInterface(): Promise<void> {
-        return adapter.claimInterface(this._handle, this.interfaceNumber)
-        .then(() => {
-            this._claimed = true;
-        });
+    public async claimInterface(): Promise<void> {
+        await adapter.claimInterface(this._handle, this.interfaceNumber);
+        this._claimed = true;
     }
 
     /**
      * @hidden
      */
-    public releaseInterface(): Promise<void> {
-        return adapter.releaseInterface(this._handle, this.interfaceNumber)
-        .then(() => {
-            this._claimed = false;
-        });
+    public async releaseInterface(): Promise<void> {
+        await adapter.releaseInterface(this._handle, this.interfaceNumber);
+        this._claimed = false;
     }
 
     /**

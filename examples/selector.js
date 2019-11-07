@@ -23,17 +23,17 @@
 * SOFTWARE.
 */
 
-var USB = require("../").USB;
+const USB = require("../").USB;
 
-function handleDevicesFound(devices, selectFn) {
+function devicesFound(devices, selectFn) {
     process.stdin.setRawMode(true);
     process.stdin.setEncoding("utf8");
     process.stdin.on("readable", () => {
-        var input = process.stdin.read();
+        const input = process.stdin.read();
         if (input === "\u0003") {
             process.exit();
         } else {
-            var index = parseInt(input);
+            const index = parseInt(input);
             if (index && index <= devices.length) {
                 process.stdin.setRawMode(false);
                 selectFn(devices[index - 1]);
@@ -47,21 +47,20 @@ function handleDevicesFound(devices, selectFn) {
     });
 }
 
-var usb = new USB({
-    devicesFound: handleDevicesFound
-});
+const usb = new USB({ devicesFound });
 
-usb.requestDevice({
-    filters: [{vendorId: 0x0d28}]
-})
-.then(device => {
-    console.log(JSON.stringify(device, (key, value) => {
-        if (key === "interfaces") return `[${value.length}...]`;
-        return value;
-    }, "\t"));
-    process.exit();
-})
-.catch(error => {
-    console.log(error.message);
-    process.exit();
-});
+(async () => {
+    try {
+        const device = await usb.requestDevice({
+            filters: [{vendorId: 0x0d28}]
+        });
+
+        console.log(JSON.stringify(device, (key, value) => {
+            if (key === "interfaces") return `[${value.length}...]`;
+            return value;
+        }, "\t"));    
+    } catch (error) {
+        console.log(error.message);
+    }
+    process.exit();    
+})();

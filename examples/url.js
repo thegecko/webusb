@@ -23,38 +23,40 @@
 * SOFTWARE.
 */
 
-var path = require("path");
-var exec = require("child_process").exec;
-var usb = require("../").usb;
+const path = require("path");
+const exec = require("child_process").exec;
+const usb = require("../").usb;
 
-function deviceFound(device) {
-    console.log(`Device '${device.productName || device.serialNumber}' connected`);
-    if (device.url) openUrl(device.url);
-}
-
-function openUrl(url) {
+const openUrl = url => {
     console.log(`Opening url: ${url}`);
 
-    var cmd = path.join(__dirname, "xdg-open");
+    const cmd = path.join(__dirname, "xdg-open");
     if (process.platform === "darwin") cmd = "open";
     else if (process.platform === "win32") cmd = `start ""`;
 
     exec(`${cmd} ${url}`);
 }
 
-console.log("Searching for Web USB devices...");
-
-usb.requestDevice({
-    filters: [{vendorId: 0x0d28}]
-})
-.then(device => deviceFound(device))
-.catch(error => {
-    console.log(error.message);
-    process.exit();
-});
+const deviceFound = device => {
+    console.log(`Device '${device.productName || device.serialNumber}' connected`);
+    if (device.url) openUrl(device.url);
+}
 
 usb.addEventListener("connect", deviceFound);
-
 usb.addEventListener("disconnect", device => {
     console.log(`Device '${device.productName || device.serialNumber}' disconnected`);
 });
+
+console.log("Searching for Web USB devices...");
+
+(async () => {
+    try {
+        const device = await usb.requestDevice({
+            filters: [{vendorId: 0x0d28}]
+        });
+        deviceFound(device);
+    } catch (error) {
+        console.log(error.message);
+        process.exit();
+    }
+})();

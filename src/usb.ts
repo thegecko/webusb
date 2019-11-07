@@ -137,10 +137,8 @@ export class USB extends EventDispatcher {
      * Gets all allowed Web USB devices
      * @returns Promise containing an array of devices
      */
-    public getDevices(): Promise<Array<USBDevice>> {
-        return new Promise((resolve, _reject) => {
-            resolve(this.allowedDevices);
-        });
+    public async getDevices(): Promise<Array<USBDevice>> {
+        return this.allowedDevices;
     }
 
     /**
@@ -148,69 +146,66 @@ export class USB extends EventDispatcher {
      * @param options The options to use when scanning
      * @returns Promise containing the selected device
      */
-    public requestDevice(options: USBDeviceRequestOptions): Promise<USBDevice> {
-        return new Promise((resolve, reject) => {
-            // Must have options
-            if (!options) {
-                return reject(new TypeError("requestDevice error: 1 argument required, but only 0 present"));
+    public async requestDevice(options: USBDeviceRequestOptions): Promise<USBDevice> {
+        // Must have options
+        if (!options) {
+            throw new TypeError("requestDevice error: 1 argument required, but only 0 present");
+        }
+
+        // Options must be an object
+        if (options.constructor !== {}.constructor) {
+            throw new TypeError("requestDevice error: parameter 1 (options) is not an object");
+        }
+
+        // Must have a filter
+        if (!options.filters) {
+            throw new TypeError("requestDevice error: required member filters is undefined");
+        }
+
+        // Filter must be an array
+        if (options.filters.constructor !== [].constructor) {
+            throw new TypeError("requestDevice error: the provided value cannot be converted to a sequence");
+        }
+
+        // Check filters
+        options.filters.every(filter => {
+
+            // Protocol & Subclass
+            if (filter.protocolCode && !filter.subclassCode) {
+                throw new TypeError("requestDevice error: subclass code is required");
             }
 
-            // Options must be an object
-            if (options.constructor !== {}.constructor) {
-                return reject(new TypeError("requestDevice error: parameter 1 (options) is not an object"));
+            // Subclass & Class
+            if (filter.subclassCode && !filter.classCode) {
+                throw new TypeError("requestDevice error: class code is required");
             }
 
-            // Must have a filter
-            if (!options.filters) {
-                return reject(new TypeError("requestDevice error: required member filters is undefined"));
-            }
-
-            // Filter must be an array
-            if (options.filters.constructor !== [].constructor) {
-                return reject(new TypeError("requestDevice error: the provided value cannot be converted to a sequence"));
-            }
-
-            // Check filters
-            const check = options.filters.every(filter => {
-
-                // Protocol & Subclass
-                if (filter.protocolCode && !filter.subclassCode) {
-                    reject(new TypeError("requestDevice error: subclass code is required"));
-                    return false;
-                }
-
-                // Subclass & Class
-                if (filter.subclassCode && !filter.classCode) {
-                    reject(new TypeError("requestDevice error: class code is required"));
-                    return false;
-                }
-
-                return true;
-            });
-
-            if (!check) return;
-
-            return adapter.listUSBDevices()
-            .then(devices => {
-                devices = devices.filter(device => this.filterDevice(options, device));
-
-                if (devices.length === 0) {
-                    return reject(new Error("requestDevice error: no devices found"));
-                }
-
-                function selectFn(device: USBDevice) {
-                    if (!this.replaceAllowedDevice(device)) this.allowedDevices.push(device);
-                    resolve(device);
-                }
-
-                // If no devicesFound function, select the first device found
-                if (!this.devicesFound) return selectFn.call(this, devices[0]);
-
-                const selectedDevice = this.devicesFound(devices, selectFn.bind(this));
-                if (selectedDevice) selectFn.call(this, selectedDevice);
-            }).catch(error => {
-                reject(new Error(`requestDevice error: ${error}`));
-            });
+            return true;
         });
+
+        let devices;
+
+        try {
+            devices = await adapter.listUSBDevices();
+        } catch (error) {
+            throw new Error(`requestDevice error: ${error}`);
+        }
+
+        devices = devices.filter(device => this.filterDevice(options, device));
+
+        if (devices.length === 0) {
+            throw new Error("requestDevice error: no devices found");
+        }
+
+        function selectFn(device: USBDevice) {
+            if (!this.replaceAllowedDevice(device)) this.allowedDevices.push(device);
+            return device;
+        }
+
+        // If no devicesFound function, select the first device found
+        if (!this.devicesFound) return selectFn.call(this, devices[0]);
+
+        const selectedDevice = this.devicesFound(devices, selectFn.bind(this));
+        if (selectedDevice) selectFn.call(this, selectedDevice);
     }
 }
