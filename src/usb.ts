@@ -197,15 +197,17 @@ export class USB extends EventDispatcher {
             throw new Error("requestDevice error: no devices found");
         }
 
-        function selectFn(device: USBDevice) {
-            if (!this.replaceAllowedDevice(device)) this.allowedDevices.push(device);
-            return device;
-        }
+        return new Promise(resolve => {
+            const selectFn = (device: USBDevice) => {
+                if (!this.replaceAllowedDevice(device)) this.allowedDevices.push(device);
+                return resolve(device);
+            };
 
-        // If no devicesFound function, select the first device found
-        if (!this.devicesFound) return selectFn.call(this, devices[0]);
+            // If no devicesFound function, select the first device found
+            if (!this.devicesFound) return selectFn.call(this, devices[0]);
 
-        const selectedDevice = this.devicesFound(devices, selectFn.bind(this));
-        if (selectedDevice) selectFn.call(this, selectedDevice);
+            const selectedDevice = this.devicesFound(devices, selectFn.bind(this));
+            if (selectedDevice) selectFn.call(this, selectedDevice);
+        });
     }
 }

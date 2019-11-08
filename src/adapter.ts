@@ -222,7 +222,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
             // tslint:disable-next-line:no-unused-expression
             device.deviceDescriptor;
         } catch (_error) {
-            return Promise.resolve(null);
+            return null;
         }
 
         const capabilities = await this.getCapabilities(device, retries);
@@ -358,6 +358,10 @@ export class USBAdapter extends EventEmitter implements Adapter {
                 url: url,
                 configurations: configurations
             });
+        }
+
+        if (!configDescriptor) {
+            return null;
         }
 
         const deviceVersion = this.decodeVersion(deviceDescriptor.bcdDevice);
@@ -654,6 +658,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
         return new Promise((resolve, reject) => {
             const device = this.getDevice(handle);
             const wIndex = endpointNumber | (direction === "in" ? LIBUSB_ENDPOINT_IN : LIBUSB_ENDPOINT_OUT);
+
             device.controlTransfer(LIBUSB_RECIPIENT_ENDPOINT, CONSTANTS.CLEAR_FEATURE, CONSTANTS.ENDPOINT_HALT, wIndex, 0, error => {
                 if (error) return reject(error);
                 resolve();
@@ -726,6 +731,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
     public reset(handle: string): Promise<void> {
         return new Promise((resolve, reject) => {
             const device = this.getDevice(handle);
+
             device.reset(error => {
                 if (error) return reject(error);
                 resolve();

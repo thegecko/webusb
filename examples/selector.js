@@ -25,7 +25,7 @@
 
 const USB = require("../").USB;
 
-function devicesFound(devices, selectFn) {
+const devicesFound = (devices, selectFn) => {
     process.stdin.setRawMode(true);
     process.stdin.setEncoding("utf8");
     process.stdin.on("readable", () => {
