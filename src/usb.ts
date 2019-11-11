@@ -27,6 +27,7 @@ import { EventDispatcher } from "./dispatcher";
 import { USBDevice } from "./device";
 import { USBOptions, USBDeviceRequestOptions } from "./interfaces";
 import { USBAdapter, adapter } from "./adapter";
+import { deviceToKey } from "./helpers";
 
 /**
  * USB class
@@ -44,7 +45,9 @@ export class USB extends EventDispatcher {
      */
     public static EVENT_DEVICE_DISCONNECT: string = "disconnect";
 
-    private allowedDevices: Array<USBDevice> = [];
+    private allowedDevices: Set<string> = new Set();
+    private connectedDevices: Map<string, USBDevice> = new Map();
+    private deviceByHandle: Map<string, USBDevice> = new Map();
     private devicesFound: (devices: Array<USBDevice>, selectFn?: (device: USBDevice) => void) => USBDevice | void;
 
     /**
@@ -64,29 +67,29 @@ export class USB extends EventDispatcher {
         });
 
         adapter.addListener(USBAdapter.EVENT_DEVICE_DISCONNECT, handle => {
-            const allowedDevice = this.allowedDevices.find(allowedDevices => allowedDevices._handle === handle);
+            const device = this.deviceByHandle.get(handle);
 
-            if (allowedDevice) {
-                this.emit(USB.EVENT_DEVICE_DISCONNECT, allowedDevice);
+            if (device) {
+                const key = deviceToKey(device);
 
-                // Delete device from cache
-                const index = this.allowedDevices.indexOf(allowedDevice);
-                this.allowedDevices.splice(index, 1);
+                this.emit(USB.EVENT_DEVICE_DISCONNECT, device);
+                this.connectedDevices.delete(key);
+                this.deviceByHandle.delete(handle);
             }
         });
     }
 
     private replaceAllowedDevice(device: USBDevice): boolean {
-        for (const i in this.allowedDevices) {
-            if (this.allowedDevices[i].productId === device.productId
-                && this.allowedDevices[i].vendorId === device.vendorId
-                && this.allowedDevices[i].serialNumber === device.serialNumber) {
-                this.allowedDevices[i] = device;
-                return true;
-            }
+        const key = deviceToKey(device);
+
+        if (!this.allowedDevices.has(key)) {
+            return false;
         }
 
-        return false;
+        this.connectedDevices.set(key, device);
+        this.deviceByHandle.set(device._handle, device);
+
+        return true;
     }
 
     private filterDevice(options: USBDeviceRequestOptions, device: USBDevice): boolean {
@@ -139,7 +142,7 @@ export class USB extends EventDispatcher {
      */
     public getDevices(): Promise<Array<USBDevice>> {
         return new Promise((resolve, _reject) => {
-            resolve(this.allowedDevices);
+            resolve(Array.from(this.connectedDevices.values()));
         });
     }
 
@@ -199,7 +202,14 @@ export class USB extends EventDispatcher {
                 }
 
                 function selectFn(device: USBDevice) {
-                    if (!this.replaceAllowedDevice(device)) this.allowedDevices.push(device);
+                    if (!this.replaceAllowedDevice(device)) {
+                        const key = deviceToKey(device);
+
+                        this.allowedDevices.add(key);
+                        this.connectedDevices.set(key, device);
+                        this.deviceByHandle.set(device._handle, device);
+                    }
+
                     resolve(device);
                 }
 
