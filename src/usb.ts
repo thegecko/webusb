@@ -45,7 +45,7 @@ export class USB extends EventDispatcher {
     public static EVENT_DEVICE_DISCONNECT: string = "disconnect";
 
     private allowedDevices: Array<USBDevice> = [];
-    private devicesFound: (devices: Array<USBDevice>, selectFn?: (device: USBDevice) => void) => USBDevice | void;
+    private devicesFound: (devices: Array<USBDevice>) => Promise<USBDevice | void>;
 
     /**
      * USB constructor
@@ -199,6 +199,10 @@ export class USB extends EventDispatcher {
                 }
 
                 function selectFn(device: USBDevice) {
+                    if (!(device instanceof USBDevice)) {
+                        return reject(new Error("requestDevice error: invalid device type."));
+                    }
+
                     if (!this.replaceAllowedDevice(device)) this.allowedDevices.push(device);
                     resolve(device);
                 }
@@ -206,8 +210,12 @@ export class USB extends EventDispatcher {
                 // If no devicesFound function, select the first device found
                 if (!this.devicesFound) return selectFn.call(this, devices[0]);
 
-                const selectedDevice = this.devicesFound(devices, selectFn.bind(this));
-                if (selectedDevice) selectFn.call(this, selectedDevice);
+                return this.devicesFound(devices)
+                .then(device => {
+                    if (device) {
+                        return selectFn.call(this, device);
+                    }
+                });
             }).catch(error => {
                 reject(new Error(`requestDevice error: ${error}`));
             });
