@@ -23,26 +23,37 @@
 * SOFTWARE.
 */
 
-import { EventDispatcher } from "./dispatcher";
+import { EventDispatcher, TypedDispatcher } from "./dispatcher";
 import { USBDevice } from "./device";
 import { USBOptions, USBDeviceRequestOptions } from "./interfaces";
 import { USBAdapter, adapter } from "./adapter";
 
 /**
+ * Events raised by the USB class
+ */
+export interface USBEvents {
+    /**
+     * @hidden
+     */
+    newListener: keyof USBEvents;
+    /**
+     * @hidden
+     */
+    removeListener: keyof USBEvents;
+    /**
+     * USBDevice connected event
+     */
+    connect: USBDevice;
+    /**
+     * USBDevice disconnected event
+     */
+    disconnect: USBDevice;
+}
+
+/**
  * USB class
  */
-export class USB extends EventDispatcher {
-    /**
-     * Allowed device Connected event
-     * @event
-     */
-    public static EVENT_DEVICE_CONNECT: string = "connect";
-
-    /**
-     * Allowed device Disconnected event
-     * @event
-     */
-    public static EVENT_DEVICE_DISCONNECT: string = "disconnect";
+export class USB extends (EventDispatcher as new() => TypedDispatcher<USBEvents>) {
 
     private allowedDevices: Array<USBDevice> = [];
     private devicesFound: (devices: Array<USBDevice>) => Promise<USBDevice | void>;
@@ -60,7 +71,7 @@ export class USB extends EventDispatcher {
         const deviceConnectCallback = device => {
             // When connected, emit an event if it was a known allowed device
             if (this.replaceAllowedDevice(device)) {
-                this.emit(USB.EVENT_DEVICE_CONNECT, device);
+                this.emit("connect", device);
             }
         };
 
@@ -69,7 +80,7 @@ export class USB extends EventDispatcher {
             const allowedDevice = this.allowedDevices.find(allowedDevices => allowedDevices._handle === handle);
 
             if (allowedDevice) {
-                this.emit(USB.EVENT_DEVICE_DISCONNECT, allowedDevice);
+                this.emit("disconnect", allowedDevice);
             }
         };
 
@@ -80,9 +91,9 @@ export class USB extends EventDispatcher {
                 return;
             }
 
-            if (event === USB.EVENT_DEVICE_CONNECT) {
+            if (event === "connect") {
                 adapter.addListener(USBAdapter.EVENT_DEVICE_CONNECT, deviceConnectCallback);
-            } else if (event === USB.EVENT_DEVICE_DISCONNECT) {
+            } else if (event === "disconnect") {
                 adapter.addListener(USBAdapter.EVENT_DEVICE_DISCONNECT, deviceDisconnectCallback);
             }
         });
@@ -94,9 +105,9 @@ export class USB extends EventDispatcher {
                 return;
             }
 
-            if (event === USB.EVENT_DEVICE_CONNECT) {
+            if (event === "connect") {
                 adapter.removeListener(USBAdapter.EVENT_DEVICE_CONNECT, deviceConnectCallback);
-            } else if (event === USB.EVENT_DEVICE_DISCONNECT) {
+            } else if (event === "disconnect") {
                 adapter.removeListener(USBAdapter.EVENT_DEVICE_DISCONNECT, deviceDisconnectCallback);
             }
         });
