@@ -245,10 +245,6 @@ export class USB extends EventDispatcher {
                 }
 
                 function selectFn(device: USBDevice) {
-                    if (!(device instanceof USBDevice)) {
-                        return reject(new Error("requestDevice error: invalid device type."));
-                    }
-
                     if (!this.replaceAllowedDevice(device)) this.allowedDevices.push(device);
                     resolve(device);
                 }
@@ -258,9 +254,11 @@ export class USB extends EventDispatcher {
 
                 return this.devicesFound(devices)
                 .then(device => {
-                    if (device) {
-                        return selectFn.call(this, device);
+                    if (!device) {
+                        reject(new Error("selected device not found"));
                     }
+
+                    return selectFn.call(this, device);
                 });
             }).catch(error => {
                 reject(new Error(`requestDevice error: ${error}`));
