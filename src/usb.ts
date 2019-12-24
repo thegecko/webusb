@@ -58,35 +58,40 @@ export class USB extends EventDispatcher {
         this.devicesFound = options.devicesFound;
 
         adapter.addListener(USBAdapter.EVENT_DEVICE_CONNECT, device => {
+            // When connected, emit an event if it was a known allowed device
             if (this.replaceAllowedDevice(device)) {
                 this.emit(USB.EVENT_DEVICE_CONNECT, device);
             }
         });
 
         adapter.addListener(USBAdapter.EVENT_DEVICE_DISCONNECT, handle => {
-            const allowedDevice = this.allowedDevices.find(allowedDevices => allowedDevices._handle === handle);
+            // When disconnected, emit an event if the device was a known allowed device
+            this.getDevices()
+            .then(devices => {
+                const device = devices.find(d => d._handle === handle);
 
-            if (allowedDevice) {
-                this.emit(USB.EVENT_DEVICE_DISCONNECT, allowedDevice);
-
-                // Delete device from cache
-                const index = this.allowedDevices.indexOf(allowedDevice);
-                this.allowedDevices.splice(index, 1);
-            }
+                if (device) {
+                    this.emit(USB.EVENT_DEVICE_DISCONNECT, device);
+                }
+            });
         });
     }
 
     private replaceAllowedDevice(device: USBDevice): boolean {
         for (const i in this.allowedDevices) {
-            if (this.allowedDevices[i].productId === device.productId
-                && this.allowedDevices[i].vendorId === device.vendorId
-                && this.allowedDevices[i].serialNumber === device.serialNumber) {
+            if (this.isSameDevice(device, this.allowedDevices[i])) {
                 this.allowedDevices[i] = device;
                 return true;
             }
         }
 
         return false;
+    }
+
+    private isSameDevice(device1: USBDevice, device2: USBDevice): boolean {
+        return (device1.productId === device2.productId
+             && device1.vendorId === device2.vendorId
+             && device1.serialNumber === device2.serialNumber);
     }
 
     private filterDevice(options: USBDeviceRequestOptions, device: USBDevice): boolean {
@@ -134,12 +139,13 @@ export class USB extends EventDispatcher {
     }
 
     /**
-     * Gets all allowed Web USB devices
+     * Gets all allowed Web USB devices which are connected
      * @returns Promise containing an array of devices
      */
     public getDevices(): Promise<Array<USBDevice>> {
         return new Promise((resolve, _reject) => {
-            resolve(this.allowedDevices);
+            const connectedDevices = this.allowedDevices.filter(device => device.connected === true);
+            resolve(connectedDevices);
         });
     }
 
