@@ -59,9 +59,7 @@ usb.requestDevice({
         if (key === "interfaces") return `[${value.length}...]`;
         return value;
     }, "\t"));
-    process.exit();
 })
 .catch(error => {
     console.log(error.message);
-    process.exit();
 });
