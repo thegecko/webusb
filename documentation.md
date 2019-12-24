@@ -23,14 +23,12 @@ The module exports a default `navigator.usb` instance and the `USB` class to all
 To use existing WebUSB scripts, you can simply use the default `usb` instance in place of the `navigator.usb` object:
 
 ```JavaScript
-var usb = require("webusb").usb;
+const usb = require("webusb").usb;
 
-usb.requestDevice({
+const device = usb.requestDevice({
     filters: [{vendorId: 0x0d28}]
-})
-.then(device => {
-    ...
-})
+});
+...
 ```
 
 The first device matching the filters will be returned.
@@ -40,27 +38,25 @@ The first device matching the filters will be returned.
 You may want to create your own instance of the `USB` class. For example, to inject a device chooser function:
 
 ```JavaScript
-var USB = require("webusb").USB;
+const USB = require("webusb").USB;
 
-function handleDevicesFound(devices, selectFn) {
+const devicesFound = async devices => {
     // If one of the devices can be automatically selected, you can return it
-    for (var i = 0; i < devices.length; i++) {
-        if (devices[i].productName === "myName") return devices[i];
+    for (const device of devices) {
+        if (device.productName === "myName") return device;
     }
 
-    // Otherwise store the selectFn somewhere and execute it later with a device to select it
+    // Otherwise return a deferred Promise and resolve it later with a device
 }
 
-var usb = new USB({
-    devicesFound: handleDevicesFound
+const usb = new USB({
+    devicesFound
 });
 
-usb.requestDevice({
+const device = usb.requestDevice({
     filters: [{vendorId: 0x0d28}]
-})
-.then(device => {
-    ...
-})
+});
+...
 ```
 
 ## Specification
