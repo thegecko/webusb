@@ -57,23 +57,48 @@ export class USB extends EventDispatcher {
         options = options || {};
         this.devicesFound = options.devicesFound;
 
-        adapter.addListener(USBAdapter.EVENT_DEVICE_CONNECT, device => {
+        const deviceConnectCallback = device => {
             // When connected, emit an event if it was a known allowed device
             if (this.replaceAllowedDevice(device)) {
                 this.emit(USB.EVENT_DEVICE_CONNECT, device);
             }
+        };
+
+        const deviceDisconnectCallback = handle => {
+            // When disconnected, emit an event if the device was a known allowed device
+            const allowedDevice = this.allowedDevices.find(allowedDevices => allowedDevices._handle === handle);
+
+            if (allowedDevice) {
+                this.emit(USB.EVENT_DEVICE_DISCONNECT, allowedDevice);
+            }
+        };
+
+        this.on("newListener", event => {
+            const listenerCount = this.listenerCount(event);
+
+            if (listenerCount !== 0) {
+                return;
+            }
+
+            if (event === USB.EVENT_DEVICE_CONNECT) {
+                adapter.addListener(USBAdapter.EVENT_DEVICE_CONNECT, deviceConnectCallback);
+            } else if (event === USB.EVENT_DEVICE_DISCONNECT) {
+                adapter.addListener(USBAdapter.EVENT_DEVICE_DISCONNECT, deviceDisconnectCallback);
+            }
         });
 
-        adapter.addListener(USBAdapter.EVENT_DEVICE_DISCONNECT, handle => {
-            // When disconnected, emit an event if the device was a known allowed device
-            this.getDevices()
-            .then(devices => {
-                const device = devices.find(d => d._handle === handle);
+        this.on("removeListener", event => {
+            const listenerCount = this.listenerCount(event);
 
-                if (device) {
-                    this.emit(USB.EVENT_DEVICE_DISCONNECT, device);
-                }
-            });
+            if (listenerCount !== 0) {
+                return;
+            }
+
+            if (event === USB.EVENT_DEVICE_CONNECT) {
+                adapter.removeListener(USBAdapter.EVENT_DEVICE_CONNECT, deviceConnectCallback);
+            } else if (event === USB.EVENT_DEVICE_DISCONNECT) {
+                adapter.removeListener(USBAdapter.EVENT_DEVICE_DISCONNECT, deviceDisconnectCallback);
+            }
         });
     }
 
@@ -143,9 +168,24 @@ export class USB extends EventDispatcher {
      * @returns Promise containing an array of devices
      */
     public getDevices(): Promise<Array<USBDevice>> {
-        return new Promise((resolve, _reject) => {
-            const connectedDevices = this.allowedDevices.filter(device => device.connected === true);
-            resolve(connectedDevices);
+        // Refresh devices and filter for allowed ones
+        return adapter.listUSBDevices()
+        .then(devices => {
+            const allowed = devices.filter(device => {
+                if (!device.connected) {
+                    return false;
+                }
+
+                for (const i in this.allowedDevices) {
+                    if (this.isSameDevice(device, this.allowedDevices[i])) {
+                        return true;
+                    }
+                }
+
+                return false;
+            });
+
+            return allowed;
         });
     }
 

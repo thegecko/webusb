@@ -50,7 +50,7 @@ usb.requestDevice({
 .then(device => deviceFound(device))
 .catch(error => {
     console.log(error.message);
-    process.exit();
+    process.exit(1);
 });
 
 usb.addEventListener("connect", deviceFound);

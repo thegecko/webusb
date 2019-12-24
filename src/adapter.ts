@@ -243,6 +243,8 @@ export class USBAdapter extends EventEmitter implements Adapter {
     }
 
     private loadDevices(): Promise<Array<Device>> {
+        // Reset device cache
+        this.devices = {};
         const devices = getDeviceList();
         return this.serialPromises(this.loadDevice, devices);
     }
