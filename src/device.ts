@@ -24,28 +24,20 @@
 */
 
 import { LIBUSB_ENDPOINT_IN } from "usb";
-import { USBDirection } from "./enums";
-import {
-    USBControlTransferParameters,
-    USBInTransferResult,
-    USBOutTransferResult,
-    USBIsochronousInTransferResult,
-    USBIsochronousOutTransferResult
-} from "./interfaces";
-import { USBConfiguration } from "./configuration";
-import { USBInterface } from "./interface";
-import { USBEndpoint } from "./endpoint";
+import { USBConfigurationImpl } from "./configuration";
+import { USBInterfaceImpl } from "./interface";
+import { USBEndpointImpl } from "./endpoint";
 import { adapter } from "./adapter";
 
 interface EndpointResult {
-    endpoint: USBEndpoint;
-    iface: USBInterface;
+    endpoint: USBEndpointImpl;
+    iface: USBInterfaceImpl;
 }
 
 /**
  * USB Device
  */
-export class USBDevice {
+export class USBDeviceImpl implements USBDevice {
 
     /**
      * Major USB protocol version supported by the device
@@ -117,11 +109,11 @@ export class USBDevice {
      */
     public readonly serialNumber: string = null;
 
-    private _configurations: Array<USBConfiguration> = [];
+    private _configurations: Array<USBConfigurationImpl> = [];
     /**
      * List of configurations supported by the device
      */
-    public get configurations(): Array<USBConfiguration> {
+    public get configurations(): Array<USBConfigurationImpl> {
         return this._configurations;
     }
 
@@ -132,7 +124,7 @@ export class USBDevice {
     /**
      * The currently selected configuration
      */
-    public get configuration(): USBConfiguration {
+    public get configuration(): USBConfigurationImpl {
         return this.configurations.find(configuration => configuration.configurationValue === this._currentConfiguration);
     }
 
@@ -168,7 +160,7 @@ export class USBDevice {
     /**
      * @hidden
      */
-    constructor(init?: Partial<USBDevice>) {
+    constructor(init?: Partial<USBDeviceImpl>) {
         this.usbVersionMajor = init.usbVersionMajor;
         this.usbVersionMinor = init.usbVersionMinor;
         this.usbVersionSubminor = init.usbVersionSubminor;

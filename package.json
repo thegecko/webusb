@@ -39,6 +39,7 @@
   "dependencies": {
     "@types/node": "^8.0.54",
     "@types/usb": "^1.5.1",
+    "@types/w3c-web-usb": "^1.0.3",
     "usb": "^1.6.0"
   }
 }

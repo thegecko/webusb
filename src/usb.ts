@@ -24,9 +24,18 @@
 */
 
 import { EventDispatcher, TypedDispatcher } from "./dispatcher";
-import { USBDevice } from "./device";
-import { USBOptions, USBDeviceRequestOptions } from "./interfaces";
+import { USBDeviceImpl } from "./device";
 import { USBAdapter, adapter } from "./adapter";
+
+/**
+ * USB Options
+ */
+export interface USBOptions {
+    /**
+     * A `device found` callback function to allow the user to select a device
+     */
+    devicesFound?: (devices: Array<USBDeviceImpl>) => Promise<USBDeviceImpl | void>;
+}
 
 /**
  * Events raised by the USB class
@@ -53,10 +62,10 @@ export interface USBEvents {
 /**
  * USB class
  */
-export class USB extends (EventDispatcher as new() => TypedDispatcher<USBEvents>) {
+export class USBImpl extends (EventDispatcher as new() => TypedDispatcher<USBEvents>) {
 
-    private allowedDevices: Array<USBDevice> = [];
-    private devicesFound: (devices: Array<USBDevice>) => Promise<USBDevice | void>;
+    private allowedDevices: Array<USBDeviceImpl> = [];
+    private devicesFound: (devices: Array<USBDeviceImpl>) => Promise<USBDeviceImpl | void>;
 
     /**
      * USB constructor
@@ -113,7 +122,7 @@ export class USB extends (EventDispatcher as new() => TypedDispatcher<USBEvents>
         });
     }
 
-    private replaceAllowedDevice(device: USBDevice): boolean {
+    private replaceAllowedDevice(device: USBDeviceImpl): boolean {
         for (const i in this.allowedDevices) {
             if (this.isSameDevice(device, this.allowedDevices[i])) {
                 this.allowedDevices[i] = device;
@@ -124,13 +133,13 @@ export class USB extends (EventDispatcher as new() => TypedDispatcher<USBEvents>
         return false;
     }
 
-    private isSameDevice(device1: USBDevice, device2: USBDevice): boolean {
+    private isSameDevice(device1: USBDeviceImpl, device2: USBDeviceImpl): boolean {
         return (device1.productId === device2.productId
              && device1.vendorId === device2.vendorId
              && device1.serialNumber === device2.serialNumber);
     }
 
-    private filterDevice(options: USBDeviceRequestOptions, device: USBDevice): boolean {
+    private filterDevice(options: USBDeviceRequestOptions, device: USBDeviceImpl): boolean {
         return options.filters.some(filter => {
             // Vendor
             if (filter.vendorId && filter.vendorId !== device.vendorId) return false;
@@ -168,7 +177,7 @@ export class USB extends (EventDispatcher as new() => TypedDispatcher<USBEvents>
             if (filter.protocolCode && filter.protocolCode !== device.deviceProtocol) return false;
 
             // Serial
-            if (filter.serialnumber && filter.serialnumber !== device.serialNumber) return false;
+            if (filter.serialNumber && filter.serialNumber !== device.serialNumber) return false;
 
             return true;
         });
@@ -178,7 +187,7 @@ export class USB extends (EventDispatcher as new() => TypedDispatcher<USBEvents>
      * Gets all allowed Web USB devices which are connected
      * @returns Promise containing an array of devices
      */
-    public getDevices(): Promise<Array<USBDevice>> {
+    public getDevices(): Promise<Array<USBDeviceImpl>> {
         // Refresh devices and filter for allowed ones
         return adapter.listUSBDevices()
         .then(devices => {
@@ -205,7 +214,7 @@ export class USB extends (EventDispatcher as new() => TypedDispatcher<USBEvents>
      * @param options The options to use when scanning
      * @returns Promise containing the selected device
      */
-    public requestDevice(options: USBDeviceRequestOptions): Promise<USBDevice> {
+    public requestDevice(options: USBDeviceRequestOptions): Promise<USBDeviceImpl> {
         return new Promise((resolve, reject) => {
             // Must have options
             if (!options) {
@@ -255,7 +264,7 @@ export class USB extends (EventDispatcher as new() => TypedDispatcher<USBEvents>
                     return reject(new Error("requestDevice error: no devices found"));
                 }
 
-                function selectFn(device: USBDevice) {
+                function selectFn(device: USBDeviceImpl) {
                     if (!this.replaceAllowedDevice(device)) this.allowedDevices.push(device);
                     resolve(device);
                 }

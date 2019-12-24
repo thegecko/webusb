@@ -23,12 +23,10 @@
 * SOFTWARE.
 */
 
-import { USBDirection, USBEndpointType } from "./enums";
-
 /**
  * USB Endpoint
  */
-export class USBEndpoint {
+export class USBEndpointImpl implements USBEndpoint {
 
     /**
      * The number of this endpoint
@@ -53,7 +51,7 @@ export class USBEndpoint {
     /**
      * @hidden
      */
-    constructor(init?: Partial<USBEndpoint>) {
+    constructor(init?: Partial<USBEndpointImpl>) {
         this.endpointNumber = init.endpointNumber;
         this.direction = init.direction;
         this.type = init.type;
