@@ -23,9 +23,10 @@ export declare class USB extends EventDispatcher {
      */
     constructor(options?: USBOptions);
     private replaceAllowedDevice;
+    private isSameDevice;
     private filterDevice;
     /**
-     * Gets all allowed Web USB devices
+     * Gets all allowed Web USB devices which are connected
      * @returns Promise containing an array of devices
      */
     getDevices(): Promise<Array<USBDevice>>;

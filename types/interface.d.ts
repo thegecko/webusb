@@ -15,12 +15,12 @@ export declare class USBInterface {
     /**
      * Whether this interface is claimed
      */
-    readonly claimed: boolean;
+    get claimed(): boolean;
     private _currentAlternate;
     /**
      * Return the current alternate interface
      */
-    readonly alternate: USBAlternateInterface;
+    get alternate(): USBAlternateInterface;
     /**
      * @hidden
      */

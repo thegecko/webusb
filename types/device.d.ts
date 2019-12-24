@@ -65,7 +65,7 @@ export declare class USBDevice {
     /**
      * List of configurations supported by the device
      */
-    readonly configurations: Array<USBConfiguration>;
+    get configurations(): Array<USBConfiguration>;
     /**
      * @hidden
      */
@@ -73,15 +73,15 @@ export declare class USBDevice {
     /**
      * The currently selected configuration
      */
-    readonly configuration: USBConfiguration;
+    get configuration(): USBConfiguration;
     /**
      * @hidden
      */
-    readonly connected: boolean;
+    get connected(): boolean;
     /**
      * A flag indicating whether the device is open
      */
-    readonly opened: boolean;
+    get opened(): boolean;
     /**
      * URL advertised by the device (not part of Web USB specification)
      */
