@@ -1,20 +1,32 @@
-import { EventDispatcher } from "./dispatcher";
+import { TypedDispatcher } from "./dispatcher";
 import { USBDevice } from "./device";
 import { USBOptions, USBDeviceRequestOptions } from "./interfaces";
 /**
+ * Events raised by the USB class
+ */
+export interface USBEvents {
+    /**
+     * @hidden
+     */
+    newListener: keyof USBEvents;
+    /**
+     * @hidden
+     */
+    removeListener: keyof USBEvents;
+    /**
+     * USBDevice connected event
+     */
+    connect: USBDevice;
+    /**
+     * USBDevice disconnected event
+     */
+    disconnect: USBDevice;
+}
+declare const USB_base: new () => TypedDispatcher<USBEvents>;
+/**
  * USB class
  */
-export declare class USB extends EventDispatcher {
-    /**
-     * Allowed device Connected event
-     * @event
-     */
-    static EVENT_DEVICE_CONNECT: string;
-    /**
-     * Allowed device Disconnected event
-     * @event
-     */
-    static EVENT_DEVICE_DISCONNECT: string;
+export declare class USB extends USB_base {
     private allowedDevices;
     private devicesFound;
     /**
@@ -37,3 +49,4 @@ export declare class USB extends EventDispatcher {
      */
     requestDevice(options: USBDeviceRequestOptions): Promise<USBDevice>;
 }
+export {};

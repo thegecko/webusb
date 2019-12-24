@@ -1,6 +1,6 @@
 {
   "name": "webusb",
-  "version": "2.0.1-next.e9fa912.0",
+  "version": "2.0.1-next.7e7231e.0",
   "description": "Node.js implementation of the WebUSB Specification",
   "homepage": "https://github.com/thegecko/webusb",
   "author": "Rob Moran <rob@thegecko.org>",
