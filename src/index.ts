@@ -23,17 +23,17 @@
 * SOFTWARE.
 */
 
-import { USB } from "./usb";
+import { USBImpl, USBOptions } from "./usb";
 
 /**
  * Default usb instance synonymous with `navigator.usb`
  */
-export const usb = new USB();
+export const usb = new USBImpl();
 
 /**
  * USB class for creating new instances
  */
-export { USB };
+export { USBImpl as USB, USBOptions };
 
 /**
  * Adapter
@@ -42,39 +42,3 @@ export {
     adapter,
     USBAdapter
 } from "./adapter";
-
-/**
- * Interfaces
- */
-export {
-    USBOptions,
-    USBDeviceFilter,
-    USBDeviceRequestOptions,
-    USBControlTransferParameters,
-    USBInTransferResult,
-    USBOutTransferResult,
-    USBIsochronousInTransferPacket,
-    USBIsochronousInTransferResult,
-    USBIsochronousOutTransferPacket,
-    USBIsochronousOutTransferResult
-} from "./interfaces";
-
-/**
- * Enums
- */
-export {
-    USBDirection,
-    USBEndpointType,
-    USBRecipient,
-    USBRequestType,
-    USBTransferStatus
-} from "./enums";
-
-/**
- * Other classes if required
- */
-export { USBAlternateInterface } from "./alternate";
-export { USBConfiguration } from "./configuration";
-export { USBDevice } from "./device";
-export { USBEndpoint } from "./endpoint";
-export { USBInterface } from "./interface";

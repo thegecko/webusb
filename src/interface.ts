@@ -23,13 +23,13 @@
 * SOFTWARE.
 */
 
-import { USBAlternateInterface } from "./alternate";
+import { USBAlternateInterfaceImpl } from "./alternate";
 import { adapter } from "./adapter";
 
 /**
  * USB Interface
  */
-export class USBInterface {
+export class USBInterfaceImpl implements USBInterface {
 
     /**
      * Number of this interface
@@ -39,7 +39,7 @@ export class USBInterface {
     /**
      * Array of alternate interfaces
      */
-    public readonly alternates: Array<USBAlternateInterface> = [];
+    public readonly alternates: Array<USBAlternateInterfaceImpl> = [];
 
     private _claimed: boolean = false;
     /**
@@ -53,7 +53,7 @@ export class USBInterface {
     /**
      * Return the current alternate interface
      */
-    public get alternate(): USBAlternateInterface {
+    public get alternate(): USBAlternateInterfaceImpl {
         return this.alternates.find(alternate => alternate.alternateSetting === this._currentAlternate);
     }
 
@@ -65,7 +65,7 @@ export class USBInterface {
     /**
      * @hidden
      */
-    constructor(init?: Partial<USBInterface>) {
+    constructor(init?: Partial<USBInterfaceImpl>) {
         this.interfaceNumber = init.interfaceNumber;
         this.alternates = init.alternates;
 
