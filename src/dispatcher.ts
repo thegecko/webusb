@@ -29,10 +29,9 @@ import { EventEmitter } from "events";
  * @hidden
  */
 export interface TypedDispatcher<T> {
-    addEventListener<K extends keyof T>(type: K, listener: (event: CustomEvent<T[K]>) => void): void;
-    removeEventListener<K extends keyof T>(type: K, callback: (event: CustomEvent<T[K]>) => void): void;
-    dispatchEvent(event: CustomEvent<T>): boolean;
-    dispatchEvent<K extends keyof T>(type: K, detail: T[K]): boolean;
+    addEventListener<K extends keyof T>(type: K, listener: (this: this, event: T[K]) => void): void;
+    removeEventListener<K extends keyof T>(type: K, callback: (this: this, event: T[K]) => void): void;
+    dispatchEvent<K extends keyof T>(event: T[K]): boolean;
     addListener<K extends keyof T>(event: K, listener: (data: T[K]) => void): this;
     on<K extends keyof T>(event: K, listener: (data: T[K]) => void): this;
     once<K extends keyof T>(event: K, listener: (data: T[K]) => void): this;
@@ -43,7 +42,6 @@ export interface TypedDispatcher<T> {
     // tslint:disable-next-line:ban-types
     listeners<K extends keyof T>(event: K): Array<Function>;
     emit<K extends keyof T>(event: K, data: T[K]): boolean;
-    // tslint:disable-next-line:array-type
     eventNames<K extends keyof T>(): Array<K>;
     listenerCount<K extends keyof T>(type: K): number;
     setMaxListeners(n: number): this;
@@ -71,18 +69,7 @@ export class EventDispatcher extends EventEmitter implements EventTarget {
         }
     }
 
-    public dispatchEvent(event: Event): boolean;
-    public dispatchEvent<T>(type: string, detail: T): boolean;
-    public dispatchEvent<T>(eventOrType: Event | string, detail?: T): boolean {
-        let event: Event;
-        if (typeof eventOrType === "string") {
-            event = new CustomEvent(eventOrType, {
-                detail
-            });
-        } else {
-            event = eventOrType;
-        }
-
+    public dispatchEvent(event: Event): boolean {
         return super.emit(event.type, event);
     }
 }

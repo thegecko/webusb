@@ -26,6 +26,19 @@
 import { EventDispatcher, TypedDispatcher } from "./dispatcher";
 import { USBDeviceImpl } from "./device";
 import { USBAdapter, adapter } from "./adapter";
+import { USBConnectionEventImpl } from "./events";
+
+export interface USBInterface {
+    onconnect: ((this: this, ev: USBConnectionEvent) => any) | null;
+    ondisconnect: ((this: this, ev: USBConnectionEvent) => any) | null;
+    getDevices(): Promise<Array<USBDevice>>;
+    requestDevice(options?: USBDeviceRequestOptions): Promise<USBDevice>;
+    addEventListener(type: "connect" | "disconnect", listener: (this: this, ev: USBConnectionEvent) => any, useCapture?: boolean): void;
+    addEventListener(type: string, listener: EventListenerOrEventListenerObject | null, options?: boolean | AddEventListenerOptions): void;
+    removeEventListener(type: "connect" | "disconnect", callback: (this: this, ev: USBConnectionEvent) => any, useCapture?: boolean): void;
+    removeEventListener(type: string, callback: EventListenerOrEventListenerObject | null, options?: EventListenerOptions | boolean): void;
+    dispatchEvent(event: USBConnectionEvent): boolean;
+}
 
 /**
  * USB Options
@@ -52,20 +65,23 @@ export interface USBEvents {
     /**
      * USBDevice connected event
      */
-    connect: USBDevice;
+    connect: USBConnectionEvent;
     /**
      * USBDevice disconnected event
      */
-    disconnect: USBDevice;
+    disconnect: USBConnectionEvent;
 }
 
 /**
  * USB class
  */
-export class USBImpl extends (EventDispatcher as new() => TypedDispatcher<USBEvents>) {
+export class USBImpl extends (EventDispatcher as new() => TypedDispatcher<USBEvents>) implements USBInterface {
 
     private allowedDevices: Array<USBDeviceImpl> = [];
     private devicesFound: (devices: Array<USBDeviceImpl>) => Promise<USBDeviceImpl | void>;
+
+    public onconnect: (ev: USBConnectionEvent) => void;
+    public ondisconnect: (ev: USBConnectionEvent) => void;
 
     /**
      * USB constructor
@@ -80,16 +96,26 @@ export class USBImpl extends (EventDispatcher as new() => TypedDispatcher<USBEve
         const deviceConnectCallback = device => {
             // When connected, emit an event if it was a known allowed device
             if (this.replaceAllowedDevice(device)) {
-                this.emit("connect", device);
+                const event = new USBConnectionEventImpl("connect", { device }) as USBConnectionEvent;
+                this.dispatchEvent(event);
+
+                if (this.onconnect) {
+                    this.onconnect(event);
+                }
             }
         };
 
         const deviceDisconnectCallback = handle => {
             // When disconnected, emit an event if the device was a known allowed device
-            const allowedDevice = this.allowedDevices.find(allowedDevices => allowedDevices._handle === handle);
+            const device = this.allowedDevices.find(allowedDevices => allowedDevices._handle === handle);
 
-            if (allowedDevice) {
-                this.emit("disconnect", allowedDevice);
+            if (device) {
+                const event = new USBConnectionEventImpl("disconnect", { device }) as USBConnectionEvent;
+                this.dispatchEvent(event);
+
+                if (this.ondisconnect) {
+                    this.ondisconnect(event);
+                }
             }
         };
 
