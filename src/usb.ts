@@ -24,22 +24,10 @@
 */
 
 import { EventDispatcher, TypedDispatcher } from "./dispatcher";
-import { USBDevice } from "./device";
-import { USBConnectionEvent } from "./events";
-
 import { USBAdapter, adapter } from "./adapter";
-
-export interface USBInterface {
-    onconnect: ((this: this, ev: USBConnectionEvent) => any) | null;
-    ondisconnect: ((this: this, ev: USBConnectionEvent) => any) | null;
-    getDevices(): Promise<Array<USBDevice>>;
-    requestDevice(options?: USBDeviceRequestOptions): Promise<USBDevice>;
-    addEventListener(type: "connect" | "disconnect", listener: (this: this, ev: USBConnectionEvent) => any, useCapture?: boolean): void;
-    addEventListener(type: string, listener: EventListenerOrEventListenerObject | null, options?: boolean | AddEventListenerOptions): void;
-    removeEventListener(type: "connect" | "disconnect", callback: (this: this, ev: USBConnectionEvent) => any, useCapture?: boolean): void;
-    removeEventListener(type: string, callback: EventListenerOrEventListenerObject | null, options?: EventListenerOptions | boolean): void;
-    dispatchEvent(event: USBConnectionEvent): boolean;
-}
+import { USBConnectionEvent } from "./events";
+import { USBDevice } from "./device";
+import { W3CUSB } from "./interfaces";
 
 /**
  * USB Options
@@ -76,7 +64,7 @@ export interface USBEvents {
 /**
  * USB class
  */
-export class USB extends (EventDispatcher as new() => TypedDispatcher<USBEvents>) implements USBInterface {
+export class USB extends (EventDispatcher as new() => TypedDispatcher<USBEvents>) implements W3CUSB {
 
     private allowedDevices: Array<USBDevice> = [];
     private devicesFound: (devices: Array<USBDevice>) => Promise<USBDevice | void>;
@@ -90,7 +78,7 @@ export class USB extends (EventDispatcher as new() => TypedDispatcher<USBEvents>
         this.addEventListener("connect", this._onconnect);
     }
 
-    public _ondisconnect: (ev: USBConnectionEvent) => void;
+    private _ondisconnect: (ev: USBConnectionEvent) => void;
     public set ondisconnect(fn: (ev: USBConnectionEvent) => void) {
         if (this._ondisconnect) {
             this.removeEventListener("disconnect", this._ondisconnect);
@@ -112,7 +100,7 @@ export class USB extends (EventDispatcher as new() => TypedDispatcher<USBEvents>
         const deviceConnectCallback = device => {
             // When connected, emit an event if it was a known allowed device
             if (this.replaceAllowedDevice(device)) {
-                const event = new USBConnectionEvent("connect", { device }) as USBConnectionEvent;
+                const event = new USBConnectionEvent(this as EventTarget, "connect", { device }) as USBConnectionEvent;
                 this.dispatchEvent(event);
 
                 if (this.onconnect) {
@@ -126,7 +114,7 @@ export class USB extends (EventDispatcher as new() => TypedDispatcher<USBEvents>
             const device = this.allowedDevices.find(allowedDevices => allowedDevices._handle === handle);
 
             if (device) {
-                const event = new USBConnectionEvent("disconnect", { device }) as USBConnectionEvent;
+                const event = new USBConnectionEvent(this as EventTarget, "disconnect", { device }) as USBConnectionEvent;
                 this.dispatchEvent(event);
 
                 if (this.ondisconnect) {

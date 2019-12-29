@@ -23,11 +23,157 @@
 * SOFTWARE.
 */
 
-export class USBConnectionEvent {
+import { DOMEvent, W3CUSBConnectionEvent } from "./interfaces";
+
+// tslint:disable:max-classes-per-file
+
+/**
+ * @hidden
+ */
+export class Event implements DOMEvent {
+
+    /**
+     * Type of the event
+     */
+    public type: string;
+
+    /**
+     * @hidden
+     */
+    public target: EventTarget;
+
+    /**
+     * @hidden
+     */
+    public currentTarget: EventTarget;
+
+    /**
+     * @hidden
+     */
+    public srcElement: EventTarget;
+
+    /**
+     * @hidden
+     */
+    public timeStamp: number;
+
+    /**
+     * @hidden
+     */
+    public bubbles = false;
+
+    /**
+     * @hidden
+     */
+    public cancelable = false;
+
+    /**
+     * @hidden
+     */
+    public cancelBubble = false;
+
+    /**
+     * @hidden
+     */
+    public composed = false;
+
+    /**
+     * @hidden
+     */
+    public defaultPrevented = false;
+
+    /**
+     * @hidden
+     */
+    public eventPhase = 0;
+
+    /**
+     * @hidden
+     */
+    public isTrusted = true;
+
+    /**
+     * @hidden
+     */
+    public returnValue = true;
+
+    /**
+     * @hidden
+     */
+    public AT_TARGET: number;
+
+    /**
+     * @hidden
+     */
+    public BUBBLING_PHASE: number;
+
+    /**
+     * @hidden
+     */
+    public CAPTURING_PHASE: number;
+
+    /**
+     * @hidden
+     */
+    public NONE: number;
+
+    /**
+     * @hidden
+     */
+    public composedPath(): Array<EventTarget> {
+        return [];
+    }
+
+    /**
+     * @hidden
+     */
+    public initEvent(type: string, bubbles?: boolean, cancelable?: boolean) {
+        this.type = type;
+        this.bubbles = bubbles;
+        this.cancelable = cancelable;
+    }
+
+    /**
+     * @hidden
+     */
+    public preventDefault() {
+        this.defaultPrevented = true;
+    }
+
+    /**
+     * @hidden
+     */
+    public stopImmediatePropagation() {
+        return;
+    }
+
+    /**
+     * @hidden
+     */
+    public stopPropagation() {
+        return;
+    }
+}
+
+export class USBConnectionEvent extends Event implements W3CUSBConnectionEvent {
+
+    /**
+     * {@link USBDevice} connected or disconnected
+     */
     public readonly device: USBDevice;
 
-    constructor(public type: string, eventInitDict: USBConnectionEventInit) {
-        // super(type);
+    /**
+     * Type of the event
+     */
+    public readonly type: "connect" | "disconnect";
+
+    /**
+     * @hidden
+     */
+    constructor(target: EventTarget, type: "connect" | "disconnect", eventInitDict: USBConnectionEventInit) {
+        super();
+        this.initEvent(type, eventInitDict.bubbles, eventInitDict.cancelable);
+        this.target = target;
         this.device = eventInitDict.device;
     }
 }
