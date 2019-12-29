@@ -24,11 +24,13 @@
 */
 
 import { adapter } from "./adapter";
+import { W3CUSBInterface } from "./interfaces";
+import { USBAlternateInterface } from "./alternate";
 
 /**
  * USB Interface
  */
-export class USBInterface implements USBInterface {
+export class USBInterface implements W3CUSBInterface {
 
     /**
      * Number of this interface

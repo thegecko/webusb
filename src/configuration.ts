@@ -24,11 +24,12 @@
 */
 
 import { USBInterface } from "./interface";
+import { W3CUSBConfiguration } from "./interfaces";
 
 /**
  * USB Configuration
  */
-export class USBConfiguration implements USBConfiguration {
+export class USBConfiguration implements W3CUSBConfiguration {
 
     /**
      * The value of this configuration

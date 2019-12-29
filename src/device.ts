@@ -26,7 +26,11 @@
 import { LIBUSB_ENDPOINT_IN } from "usb";
 import { USBConfiguration } from "./configuration";
 import { adapter } from "./adapter";
+import { W3CUSBDevice } from "./interfaces";
 
+/**
+ * @hidden
+ */
 interface EndpointResult {
     endpoint: USBEndpoint;
     iface: USBInterface;
@@ -35,7 +39,7 @@ interface EndpointResult {
 /**
  * USB Device
  */
-export class USBDevice implements USBDevice {
+export class USBDevice implements W3CUSBDevice {
 
     /**
      * Major USB protocol version supported by the device
