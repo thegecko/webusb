@@ -37,16 +37,16 @@ const openUrl = url => {
     exec(`${cmd} ${url}`);
 }
 
-const deviceFound = device => {
-    console.log(`Device '${device.productName || device.serialNumber}' connected`);
-    if (device.url) openUrl(device.url);
+const deviceConnected = event => {
+    console.log(`Device '${event.device.productName || event.device.serialNumber}' connected`);
+    if (event.device.url) openUrl(event.device.url);
 }
 
-usb.addEventListener("connect", deviceFound);
+usb.onconnect = deviceConnected;
 
-usb.addEventListener("disconnect", device => {
-    console.log(`Device '${device.productName || device.serialNumber}' disconnected`);
-});
+usb.ondisconnect = event => {
+    console.log(`Device '${event.device.productName || event.device.serialNumber}' disconnected`);
+};
 
 console.log("Searching for Web USB devices...");
 
@@ -56,7 +56,7 @@ console.log("Searching for Web USB devices...");
             filters: [{vendorId: 0x0d28}]
         });
 
-        deviceFound(device);
+        deviceConnected({ device });
     } catch (error) {
         console.log(error.message);
         process.exit(1);

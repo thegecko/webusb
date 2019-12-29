@@ -23,12 +23,12 @@
 * SOFTWARE.
 */
 
-import { USBInterfaceImpl } from "./interface";
+import { USBInterface } from "./interface";
 
 /**
  * USB Configuration
  */
-export class USBConfigurationImpl implements USBConfiguration {
+export class USBConfiguration implements USBConfiguration {
 
     /**
      * The value of this configuration
@@ -43,12 +43,12 @@ export class USBConfigurationImpl implements USBConfiguration {
     /**
      * The array of interfaces on this configuration
      */
-    public readonly interfaces: Array<USBInterfaceImpl> = [];
+    public readonly interfaces: Array<USBInterface> = [];
 
     /**
      * @hidden
      */
-    constructor(init?: Partial<USBConfigurationImpl>) {
+    constructor(init?: Partial<USBConfiguration>) {
         this.configurationValue = init.configurationValue;
         this.configurationName = init.configurationName;
         this.interfaces = init.interfaces;
