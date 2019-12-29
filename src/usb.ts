@@ -24,9 +24,10 @@
 */
 
 import { EventDispatcher, TypedDispatcher } from "./dispatcher";
-import { USBDeviceImpl } from "./device";
+import { USBDevice } from "./device";
+import { USBConnectionEvent } from "./events";
+
 import { USBAdapter, adapter } from "./adapter";
-import { USBConnectionEventImpl } from "./events";
 
 export interface USBInterface {
     onconnect: ((this: this, ev: USBConnectionEvent) => any) | null;
@@ -47,11 +48,11 @@ export interface USBOptions {
     /**
      * A `device found` callback function to allow the user to select a device
      */
-    devicesFound?: (devices: Array<USBDeviceImpl>) => Promise<USBDeviceImpl | void>;
+    devicesFound?: (devices: Array<USBDevice>) => Promise<USBDevice | void>;
 }
 
 /**
- * Events raised by the USB class
+ * @hidden
  */
 export interface USBEvents {
     /**
@@ -75,13 +76,28 @@ export interface USBEvents {
 /**
  * USB class
  */
-export class USBImpl extends (EventDispatcher as new() => TypedDispatcher<USBEvents>) implements USBInterface {
+export class USB extends (EventDispatcher as new() => TypedDispatcher<USBEvents>) implements USBInterface {
 
-    private allowedDevices: Array<USBDeviceImpl> = [];
-    private devicesFound: (devices: Array<USBDeviceImpl>) => Promise<USBDeviceImpl | void>;
+    private allowedDevices: Array<USBDevice> = [];
+    private devicesFound: (devices: Array<USBDevice>) => Promise<USBDevice | void>;
 
-    public onconnect: (ev: USBConnectionEvent) => void;
-    public ondisconnect: (ev: USBConnectionEvent) => void;
+    private _onconnect: (ev: USBConnectionEvent) => void;
+    public set onconnect(fn: (ev: USBConnectionEvent) => void) {
+        if (this._onconnect) {
+            this.removeEventListener("connect", this._onconnect);
+        }
+        this._onconnect = fn;
+        this.addEventListener("connect", this._onconnect);
+    }
+
+    public _ondisconnect: (ev: USBConnectionEvent) => void;
+    public set ondisconnect(fn: (ev: USBConnectionEvent) => void) {
+        if (this._ondisconnect) {
+            this.removeEventListener("disconnect", this._ondisconnect);
+        }
+        this._ondisconnect = fn;
+        this.addEventListener("disconnect", this._ondisconnect);
+    }
 
     /**
      * USB constructor
@@ -96,7 +112,7 @@ export class USBImpl extends (EventDispatcher as new() => TypedDispatcher<USBEve
         const deviceConnectCallback = device => {
             // When connected, emit an event if it was a known allowed device
             if (this.replaceAllowedDevice(device)) {
-                const event = new USBConnectionEventImpl("connect", { device }) as USBConnectionEvent;
+                const event = new USBConnectionEvent("connect", { device }) as USBConnectionEvent;
                 this.dispatchEvent(event);
 
                 if (this.onconnect) {
@@ -110,7 +126,7 @@ export class USBImpl extends (EventDispatcher as new() => TypedDispatcher<USBEve
             const device = this.allowedDevices.find(allowedDevices => allowedDevices._handle === handle);
 
             if (device) {
-                const event = new USBConnectionEventImpl("disconnect", { device }) as USBConnectionEvent;
+                const event = new USBConnectionEvent("disconnect", { device }) as USBConnectionEvent;
                 this.dispatchEvent(event);
 
                 if (this.ondisconnect) {
@@ -148,7 +164,7 @@ export class USBImpl extends (EventDispatcher as new() => TypedDispatcher<USBEve
         });
     }
 
-    private replaceAllowedDevice(device: USBDeviceImpl): boolean {
+    private replaceAllowedDevice(device: USBDevice): boolean {
         for (const i in this.allowedDevices) {
             if (this.isSameDevice(device, this.allowedDevices[i])) {
                 this.allowedDevices[i] = device;
@@ -159,13 +175,13 @@ export class USBImpl extends (EventDispatcher as new() => TypedDispatcher<USBEve
         return false;
     }
 
-    private isSameDevice(device1: USBDeviceImpl, device2: USBDeviceImpl): boolean {
+    private isSameDevice(device1: USBDevice, device2: USBDevice): boolean {
         return (device1.productId === device2.productId
              && device1.vendorId === device2.vendorId
              && device1.serialNumber === device2.serialNumber);
     }
 
-    private filterDevice(options: USBDeviceRequestOptions, device: USBDeviceImpl): boolean {
+    private filterDevice(options: USBDeviceRequestOptions, device: USBDevice): boolean {
         return options.filters.some(filter => {
             // Vendor
             if (filter.vendorId && filter.vendorId !== device.vendorId) return false;
@@ -213,7 +229,7 @@ export class USBImpl extends (EventDispatcher as new() => TypedDispatcher<USBEve
      * Gets all allowed Web USB devices which are connected
      * @returns Promise containing an array of devices
      */
-    public getDevices(): Promise<Array<USBDeviceImpl>> {
+    public getDevices(): Promise<Array<USBDevice>> {
         // Refresh devices and filter for allowed ones
         return adapter.listUSBDevices()
         .then(devices => {
@@ -240,7 +256,7 @@ export class USBImpl extends (EventDispatcher as new() => TypedDispatcher<USBEve
      * @param options The options to use when scanning
      * @returns Promise containing the selected device
      */
-    public requestDevice(options: USBDeviceRequestOptions): Promise<USBDeviceImpl> {
+    public requestDevice(options: USBDeviceRequestOptions): Promise<USBDevice> {
         return new Promise((resolve, reject) => {
             // Must have options
             if (!options) {
@@ -290,7 +306,7 @@ export class USBImpl extends (EventDispatcher as new() => TypedDispatcher<USBEve
                     return reject(new Error("requestDevice error: no devices found"));
                 }
 
-                function selectFn(device: USBDeviceImpl) {
+                function selectFn(device: USBDevice) {
                     if (!this.replaceAllowedDevice(device)) this.allowedDevices.push(device);
                     resolve(device);
                 }

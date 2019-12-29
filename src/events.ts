@@ -23,11 +23,11 @@
 * SOFTWARE.
 */
 
-export class USBConnectionEventImpl extends Event implements USBConnectionEvent {
+export class USBConnectionEvent {
     public readonly device: USBDevice;
 
-    constructor(type: string, eventInitDict: USBConnectionEventInit) {
-        super(type);
+    constructor(public type: string, eventInitDict: USBConnectionEventInit) {
+        // super(type);
         this.device = eventInitDict.device;
     }
 }

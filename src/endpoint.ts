@@ -26,7 +26,7 @@
 /**
  * USB Endpoint
  */
-export class USBEndpointImpl implements USBEndpoint {
+export class USBEndpoint implements USBEndpoint {
 
     /**
      * The number of this endpoint
@@ -51,7 +51,7 @@ export class USBEndpointImpl implements USBEndpoint {
     /**
      * @hidden
      */
-    constructor(init?: Partial<USBEndpointImpl>) {
+    constructor(init?: Partial<USBEndpoint>) {
         this.endpointNumber = init.endpointNumber;
         this.direction = init.direction;
         this.type = init.type;

@@ -23,12 +23,10 @@
 * SOFTWARE.
 */
 
-import { USBEndpointImpl } from "./endpoint";
-
 /**
  * USB Alternate Interface
  */
-export class USBAlternateInterfaceImpl implements USBAlternateInterface {
+export class USBAlternateInterface implements USBAlternateInterface {
 
     /**
      * The alternate setting for this interface
@@ -58,12 +56,12 @@ export class USBAlternateInterfaceImpl implements USBAlternateInterface {
     /**
      * The array of endpoints on this interface
      */
-    public readonly endpoints: Array<USBEndpointImpl> = [];
+    public readonly endpoints: Array<USBEndpoint> = [];
 
     /**
      * @hidden
      */
-    constructor(init?: Partial<USBAlternateInterfaceImpl>) {
+    constructor(init?: Partial<USBAlternateInterface>) {
         this.alternateSetting = init.alternateSetting;
         this.interfaceClass = init.interfaceClass;
         this.interfaceSubclass = init.interfaceSubclass;

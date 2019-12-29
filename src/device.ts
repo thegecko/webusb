@@ -24,20 +24,18 @@
 */
 
 import { LIBUSB_ENDPOINT_IN } from "usb";
-import { USBConfigurationImpl } from "./configuration";
-import { USBInterfaceImpl } from "./interface";
-import { USBEndpointImpl } from "./endpoint";
+import { USBConfiguration } from "./configuration";
 import { adapter } from "./adapter";
 
 interface EndpointResult {
-    endpoint: USBEndpointImpl;
-    iface: USBInterfaceImpl;
+    endpoint: USBEndpoint;
+    iface: USBInterface;
 }
 
 /**
  * USB Device
  */
-export class USBDeviceImpl implements USBDevice {
+export class USBDevice implements USBDevice {
 
     /**
      * Major USB protocol version supported by the device
@@ -109,11 +107,11 @@ export class USBDeviceImpl implements USBDevice {
      */
     public readonly serialNumber: string = null;
 
-    private _configurations: Array<USBConfigurationImpl> = [];
+    private _configurations: Array<USBConfiguration> = [];
     /**
      * List of configurations supported by the device
      */
-    public get configurations(): Array<USBConfigurationImpl> {
+    public get configurations(): Array<USBConfiguration> {
         return this._configurations;
     }
 
@@ -124,7 +122,7 @@ export class USBDeviceImpl implements USBDevice {
     /**
      * The currently selected configuration
      */
-    public get configuration(): USBConfigurationImpl {
+    public get configuration(): USBConfiguration {
         return this.configurations.find(configuration => configuration.configurationValue === this._currentConfiguration);
     }
 
@@ -160,7 +158,7 @@ export class USBDeviceImpl implements USBDevice {
     /**
      * @hidden
      */
-    constructor(init?: Partial<USBDeviceImpl>) {
+    constructor(init?: Partial<USBDevice>) {
         this.usbVersionMajor = init.usbVersionMajor;
         this.usbVersionMinor = init.usbVersionMinor;
         this.usbVersionSubminor = init.usbVersionSubminor;

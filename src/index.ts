@@ -23,17 +23,17 @@
 * SOFTWARE.
 */
 
-import { USBImpl, USBOptions } from "./usb";
+import { USB, USBOptions } from "./usb";
 
 /**
  * Default usb instance synonymous with `navigator.usb`
  */
-export const usb = new USBImpl();
+export const usb = new USB();
 
 /**
  * USB class for creating new instances
  */
-export { USBImpl as USB, USBOptions };
+export { USB, USBOptions };
 
 /**
  * Adapter
