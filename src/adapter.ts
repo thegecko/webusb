@@ -51,19 +51,11 @@ import {
     DeviceDescriptor,
     Capability
 } from "usb";
-import {
-    USBControlTransferParameters,
-    USBInTransferResult,
-    USBOutTransferResult,
-    USBIsochronousInTransferResult,
-    USBIsochronousOutTransferResult
-} from "./interfaces";
 import { USBConfiguration } from "./configuration";
 import { USBInterface } from "./interface";
 import { USBAlternateInterface } from "./alternate";
 import { USBEndpoint } from "./endpoint";
 import { USBDevice } from "./device";
-import { USBDirection } from "./enums";
 
 /**
  * @hidden

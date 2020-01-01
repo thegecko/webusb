@@ -1,10 +1,10 @@
-import { USBDirection } from "./enums";
-import { USBControlTransferParameters, USBInTransferResult, USBOutTransferResult, USBIsochronousInTransferResult, USBIsochronousOutTransferResult } from "./interfaces";
+/// <reference types="w3c-web-usb" />
 import { USBConfiguration } from "./configuration";
+import { W3CUSBDevice } from "./interfaces";
 /**
  * USB Device
  */
-export declare class USBDevice {
+export declare class USBDevice implements W3CUSBDevice {
     /**
      * Major USB protocol version supported by the device
      */

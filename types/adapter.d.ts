@@ -1,8 +1,7 @@
+/// <reference types="w3c-web-usb" />
 /// <reference types="node" />
 import { EventEmitter } from "events";
-import { USBControlTransferParameters, USBInTransferResult, USBOutTransferResult, USBIsochronousInTransferResult, USBIsochronousOutTransferResult } from "./interfaces";
 import { USBDevice } from "./device";
-import { USBDirection } from "./enums";
 /**
  * @hidden
  */

@@ -23,12 +23,12 @@
 * SOFTWARE.
 */
 
-import { USBDirection, USBEndpointType } from "./enums";
+import { W3CUSBEndpoint } from "./interfaces";
 
 /**
  * USB Endpoint
  */
-export class USBEndpoint {
+export class USBEndpoint implements W3CUSBEndpoint {
 
     /**
      * The number of this endpoint

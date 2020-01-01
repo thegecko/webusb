@@ -24,11 +24,12 @@
 */
 
 import { USBEndpoint } from "./endpoint";
+import { W3CUSBAlternateInterface } from "./interfaces";
 
 /**
  * USB Alternate Interface
  */
-export class USBAlternateInterface {
+export class USBAlternateInterface implements W3CUSBAlternateInterface {
 
     /**
      * The alternate setting for this interface

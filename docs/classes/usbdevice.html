@@ -39,6 +39,9 @@
 		<li class=" tsd-kind-class">
 			<a href="usbconfiguration.html" class="tsd-kind-icon">USBConfiguration</a>
 		</li>
+		<li class=" tsd-kind-class">
+			<a href="usbconnectionevent.html" class="tsd-kind-icon">USBConnection<wbr>Event</a>
+		</li>
 		<li class="current tsd-kind-class">
 			<a href="usbdevice.html" class="tsd-kind-icon">USBDevice</a>
 			<ul>
@@ -140,44 +143,8 @@
 		<li class=" tsd-kind-class">
 			<a href="usbinterface.html" class="tsd-kind-icon">USBInterface</a>
 		</li>
-		<li class=" tsd-kind-interface tsd-is-not-exported">
-			<a href="../interfaces/endpointresult.html" class="tsd-kind-icon">Endpoint<wbr>Result</a>
-		</li>
-		<li class=" tsd-kind-interface">
-			<a href="../interfaces/usbcontroltransferparameters.html" class="tsd-kind-icon">USBControl<wbr>Transfer<wbr>Parameters</a>
-		</li>
-		<li class=" tsd-kind-interface">
-			<a href="../interfaces/usbdevicefilter.html" class="tsd-kind-icon">USBDevice<wbr>Filter</a>
-		</li>
-		<li class=" tsd-kind-interface">
-			<a href="../interfaces/usbdevicerequestoptions.html" class="tsd-kind-icon">USBDevice<wbr>Request<wbr>Options</a>
-		</li>
-		<li class=" tsd-kind-interface">
-			<a href="../interfaces/usbevents.html" class="tsd-kind-icon">USBEvents</a>
-		</li>
-		<li class=" tsd-kind-interface">
-			<a href="../interfaces/usbintransferresult.html" class="tsd-kind-icon">USBIn<wbr>Transfer<wbr>Result</a>
-		</li>
 		<li class=" tsd-kind-interface">
 			<a href="../interfaces/usboptions.html" class="tsd-kind-icon">USBOptions</a>
-		</li>
-		<li class=" tsd-kind-interface">
-			<a href="../interfaces/usbouttransferresult.html" class="tsd-kind-icon">USBOut<wbr>Transfer<wbr>Result</a>
-		</li>
-		<li class=" tsd-kind-type-alias">
-			<a href="../globals.html#usbdirection" class="tsd-kind-icon">USBDirection</a>
-		</li>
-		<li class=" tsd-kind-type-alias">
-			<a href="../globals.html#usbendpointtype" class="tsd-kind-icon">USBEndpoint<wbr>Type</a>
-		</li>
-		<li class=" tsd-kind-type-alias">
-			<a href="../globals.html#usbrecipient" class="tsd-kind-icon">USBRecipient</a>
-		</li>
-		<li class=" tsd-kind-type-alias">
-			<a href="../globals.html#usbrequesttype" class="tsd-kind-icon">USBRequest<wbr>Type</a>
-		</li>
-		<li class=" tsd-kind-type-alias">
-			<a href="../globals.html#usbtransferstatus" class="tsd-kind-icon">USBTransfer<wbr>Status</a>
 		</li>
 		<li class=" tsd-kind-variable">
 			<a href="../globals.html#usb" class="tsd-kind-icon">usb</a>
@@ -199,6 +166,12 @@
 				<li>
 					<span class="target">USBDevice</span>
 				</li>
+			</ul>
+		</section>
+		<section class="tsd-panel">
+			<h3>Implements</h3>
+			<ul class="tsd-hierarchy">
+				<li><span class="tsd-signature-type">W3CUSBDevice</span></li>
 			</ul>
 		</section>
 		<section class="tsd-panel-group tsd-index-group">
@@ -531,7 +504,7 @@
 				<a name="clearhalt" class="tsd-anchor"></a>
 				<h3>clear<wbr>Halt</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">clear<wbr>Halt<span class="tsd-signature-symbol">(</span>direction<span class="tsd-signature-symbol">: </span><a href="../globals.html#usbdirection" class="tsd-signature-type">USBDirection</a>, endpointNumber<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">clear<wbr>Halt<span class="tsd-signature-symbol">(</span>direction<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">USBDirection</span>, endpointNumber<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
@@ -545,7 +518,7 @@
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>direction: <a href="../globals.html#usbdirection" class="tsd-signature-type">USBDirection</a></h5>
+								<h5>direction: <span class="tsd-signature-type">USBDirection</span></h5>
 								<div class="tsd-comment tsd-typography">
 									<p>The direction of the endpoint to clear</p>
 								</div>
@@ -585,7 +558,7 @@
 				<a name="controltransferin" class="tsd-anchor"></a>
 				<h3>control<wbr>Transfer<wbr>In</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">control<wbr>Transfer<wbr>In<span class="tsd-signature-symbol">(</span>setup<span class="tsd-signature-symbol">: </span><a href="../interfaces/usbcontroltransferparameters.html" class="tsd-signature-type">USBControlTransferParameters</a>, length<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/usbintransferresult.html" class="tsd-signature-type">USBInTransferResult</a><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">control<wbr>Transfer<wbr>In<span class="tsd-signature-symbol">(</span>setup<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">USBControlTransferParameters</span>, length<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">USBInTransferResult</span><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
@@ -599,7 +572,7 @@
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>setup: <a href="../interfaces/usbcontroltransferparameters.html" class="tsd-signature-type">USBControlTransferParameters</a></h5>
+								<h5>setup: <span class="tsd-signature-type">USBControlTransferParameters</span></h5>
 								<div class="tsd-comment tsd-typography">
 									<p>The USB control transfer parameters</p>
 								</div>
@@ -611,7 +584,7 @@
 								</div>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/usbintransferresult.html" class="tsd-signature-type">USBInTransferResult</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">USBInTransferResult</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						<p>Promise containing a result</p>
 					</li>
 				</ul>
@@ -620,7 +593,7 @@
 				<a name="controltransferout" class="tsd-anchor"></a>
 				<h3>control<wbr>Transfer<wbr>Out</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">control<wbr>Transfer<wbr>Out<span class="tsd-signature-symbol">(</span>setup<span class="tsd-signature-symbol">: </span><a href="../interfaces/usbcontroltransferparameters.html" class="tsd-signature-type">USBControlTransferParameters</a>, data<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">BufferSource</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/usbouttransferresult.html" class="tsd-signature-type">USBOutTransferResult</a><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">control<wbr>Transfer<wbr>Out<span class="tsd-signature-symbol">(</span>setup<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">USBControlTransferParameters</span>, data<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">BufferSource</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">USBOutTransferResult</span><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
@@ -635,7 +608,7 @@
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>setup: <a href="../interfaces/usbcontroltransferparameters.html" class="tsd-signature-type">USBControlTransferParameters</a></h5>
+								<h5>setup: <span class="tsd-signature-type">USBControlTransferParameters</span></h5>
 								<div class="tsd-comment tsd-typography">
 									<p>The USB control transfer parameters</p>
 								</div>
@@ -647,7 +620,7 @@
 								</div>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/usbouttransferresult.html" class="tsd-signature-type">USBOutTransferResult</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">USBOutTransferResult</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						<p>Promise containing a result</p>
 					</li>
 				</ul>
@@ -788,7 +761,7 @@
 				<a name="transferin" class="tsd-anchor"></a>
 				<h3>transfer<wbr>In</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">transfer<wbr>In<span class="tsd-signature-symbol">(</span>endpointNumber<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, length<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/usbintransferresult.html" class="tsd-signature-type">USBInTransferResult</a><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">transfer<wbr>In<span class="tsd-signature-symbol">(</span>endpointNumber<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, length<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">USBInTransferResult</span><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
@@ -814,7 +787,7 @@
 								</div>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/usbintransferresult.html" class="tsd-signature-type">USBInTransferResult</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">USBInTransferResult</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						<p>Promise containing a result</p>
 					</li>
 				</ul>
@@ -823,7 +796,7 @@
 				<a name="transferout" class="tsd-anchor"></a>
 				<h3>transfer<wbr>Out</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">transfer<wbr>Out<span class="tsd-signature-symbol">(</span>endpointNumber<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, data<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">BufferSource</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/usbouttransferresult.html" class="tsd-signature-type">USBOutTransferResult</a><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">transfer<wbr>Out<span class="tsd-signature-symbol">(</span>endpointNumber<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, data<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">BufferSource</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">USBOutTransferResult</span><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
@@ -850,7 +823,7 @@
 								</div>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/usbouttransferresult.html" class="tsd-signature-type">USBOutTransferResult</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">USBOutTransferResult</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						<p>Promise containing a result</p>
 					</li>
 				</ul>

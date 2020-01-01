@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>USBInterface | Node WebUSB</title>
+	<title>USBConnectionEvent | Node WebUSB</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -39,8 +39,16 @@
 		<li class=" tsd-kind-class">
 			<a href="usbconfiguration.html" class="tsd-kind-icon">USBConfiguration</a>
 		</li>
-		<li class=" tsd-kind-class">
+		<li class="current tsd-kind-class">
 			<a href="usbconnectionevent.html" class="tsd-kind-icon">USBConnection<wbr>Event</a>
+			<ul>
+				<li class=" tsd-kind-property tsd-parent-kind-class">
+					<a href="usbconnectionevent.html#device" class="tsd-kind-icon">device</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-overwrite">
+					<a href="usbconnectionevent.html#type" class="tsd-kind-icon">type</a>
+				</li>
+			</ul>
 		</li>
 		<li class=" tsd-kind-class">
 			<a href="usbdevice.html" class="tsd-kind-icon">USBDevice</a>
@@ -48,22 +56,8 @@
 		<li class=" tsd-kind-class">
 			<a href="usbendpoint.html" class="tsd-kind-icon">USBEndpoint</a>
 		</li>
-		<li class="current tsd-kind-class">
+		<li class=" tsd-kind-class">
 			<a href="usbinterface.html" class="tsd-kind-icon">USBInterface</a>
-			<ul>
-				<li class=" tsd-kind-property tsd-parent-kind-class">
-					<a href="usbinterface.html#alternates" class="tsd-kind-icon">alternates</a>
-				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-class">
-					<a href="usbinterface.html#interfacenumber" class="tsd-kind-icon">interface<wbr>Number</a>
-				</li>
-				<li class=" tsd-kind-get-signature tsd-parent-kind-class">
-					<a href="usbinterface.html#alternate" class="tsd-kind-icon">alternate</a>
-				</li>
-				<li class=" tsd-kind-get-signature tsd-parent-kind-class">
-					<a href="usbinterface.html#claimed" class="tsd-kind-icon">claimed</a>
-				</li>
-			</ul>
 		</li>
 		<li class=" tsd-kind-interface">
 			<a href="../interfaces/usboptions.html" class="tsd-kind-icon">USBOptions</a>
@@ -75,25 +69,24 @@
 </nav>
 <div class="container container-main">
 	<div class="content-wrap">
-		<section class="tsd-panel tsd-comment">
-			<div class="tsd-comment tsd-typography">
-				<div class="lead">
-					<p>USB Interface</p>
-				</div>
-			</div>
-		</section>
 		<section class="tsd-panel tsd-hierarchy">
 			<h3>Hierarchy</h3>
 			<ul class="tsd-hierarchy">
 				<li>
-					<span class="target">USBInterface</span>
+					<span class="tsd-signature-type">Event</span>
+					<ul class="tsd-hierarchy">
+						<li>
+							<span class="target">USBConnectionEvent</span>
+						</li>
+					</ul>
 				</li>
 			</ul>
 		</section>
 		<section class="tsd-panel">
 			<h3>Implements</h3>
 			<ul class="tsd-hierarchy">
-				<li><span class="tsd-signature-type">W3CUSBInterface</span></li>
+				<li><span class="tsd-signature-type">DOMEvent</span></li>
+				<li><span class="tsd-signature-type">W3CUSBConnectionEvent</span></li>
 			</ul>
 		</section>
 		<section class="tsd-panel-group tsd-index-group">
@@ -103,15 +96,8 @@
 					<section class="tsd-index-section ">
 						<h3>Properties</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-property tsd-parent-kind-class"><a href="usbinterface.html#alternates" class="tsd-kind-icon">alternates</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-class"><a href="usbinterface.html#interfacenumber" class="tsd-kind-icon">interface<wbr>Number</a></li>
-						</ul>
-					</section>
-					<section class="tsd-index-section ">
-						<h3>Accessors</h3>
-						<ul class="tsd-index-list">
-							<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="usbinterface.html#alternate" class="tsd-kind-icon">alternate</a></li>
-							<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="usbinterface.html#claimed" class="tsd-kind-icon">claimed</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-class"><a href="usbconnectionevent.html#device" class="tsd-kind-icon">device</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-overwrite"><a href="usbconnectionevent.html#type" class="tsd-kind-icon">type</a></li>
 						</ul>
 					</section>
 				</div>
@@ -120,69 +106,29 @@
 		<section class="tsd-panel-group tsd-member-group ">
 			<h2>Properties</h2>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-				<a name="alternates" class="tsd-anchor"></a>
-				<h3>alternates</h3>
-				<div class="tsd-signature tsd-kind-icon">alternates<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="usbalternateinterface.html" class="tsd-signature-type">USBAlternateInterface</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;[]</span></div>
+				<a name="device" class="tsd-anchor"></a>
+				<h3>device</h3>
+				<div class="tsd-signature tsd-kind-icon">device<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">USBDevice</span></div>
 				<aside class="tsd-sources">
 				</aside>
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Array of alternate interfaces</p>
+						<p><a href="usbdevice.html">USBDevice</a> connected or disconnected</p>
 					</div>
 				</div>
 			</section>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-				<a name="interfacenumber" class="tsd-anchor"></a>
-				<h3>interface<wbr>Number</h3>
-				<div class="tsd-signature tsd-kind-icon">interface<wbr>Number<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;null</span></div>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-overwrite">
+				<a name="type" class="tsd-anchor"></a>
+				<h3>type</h3>
+				<div class="tsd-signature tsd-kind-icon">type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"connect"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"disconnect"</span></div>
 				<aside class="tsd-sources">
+					<p>Overrides Event.type</p>
 				</aside>
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Number of this interface</p>
+						<p>Type of the event</p>
 					</div>
 				</div>
-			</section>
-		</section>
-		<section class="tsd-panel-group tsd-member-group ">
-			<h2>Accessors</h2>
-			<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
-				<a name="alternate" class="tsd-anchor"></a>
-				<h3>alternate</h3>
-				<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> alternate<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="usbalternateinterface.html" class="tsd-signature-type">USBAlternateInterface</a></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Return the current alternate interface</p>
-							</div>
-						</div>
-						<h4 class="tsd-returns-title">Returns <a href="usbalternateinterface.html" class="tsd-signature-type">USBAlternateInterface</a></h4>
-					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
-				<a name="claimed" class="tsd-anchor"></a>
-				<h3>claimed</h3>
-				<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> claimed<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Whether this interface is claimed</p>
-							</div>
-						</div>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
-					</li>
-				</ul>
 			</section>
 		</section>
 		<footer>

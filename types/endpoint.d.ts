@@ -1,8 +1,9 @@
-import { USBDirection, USBEndpointType } from "./enums";
+/// <reference types="w3c-web-usb" />
+import { W3CUSBEndpoint } from "./interfaces";
 /**
  * USB Endpoint
  */
-export declare class USBEndpoint {
+export declare class USBEndpoint implements W3CUSBEndpoint {
     /**
      * The number of this endpoint
      */

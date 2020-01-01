@@ -1,34 +1,41 @@
+/// <reference types="w3c-web-usb" />
 import { TypedDispatcher } from "./dispatcher";
+import { USBConnectionEvent } from "./events";
 import { USBDevice } from "./device";
-import { USBOptions, USBDeviceRequestOptions } from "./interfaces";
+import { W3CUSB } from "./interfaces";
 /**
- * Events raised by the USB class
+ * USB Options
+ */
+export interface USBOptions {
+    /**
+     * A `device found` callback function to allow the user to select a device
+     */
+    devicesFound?: (devices: Array<USBDevice>) => Promise<USBDevice | void>;
+}
+/**
+ * @hidden
  */
 export interface USBEvents {
     /**
-     * @hidden
-     */
-    newListener: keyof USBEvents;
-    /**
-     * @hidden
-     */
-    removeListener: keyof USBEvents;
-    /**
      * USBDevice connected event
      */
-    connect: USBDevice;
+    connect: USBConnectionEvent;
     /**
      * USBDevice disconnected event
      */
-    disconnect: USBDevice;
+    disconnect: USBConnectionEvent;
 }
 declare const USB_base: new () => TypedDispatcher<USBEvents>;
 /**
  * USB class
  */
-export declare class USB extends USB_base {
+export declare class USB extends USB_base implements W3CUSB {
     private allowedDevices;
     private devicesFound;
+    private _onconnect;
+    onconnect: (ev: USBConnectionEvent) => void;
+    private _ondisconnect;
+    ondisconnect: (ev: USBConnectionEvent) => void;
     /**
      * USB constructor
      * @param options USB initialisation options

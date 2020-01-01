@@ -1,6 +1,6 @@
 /*
 * Node WebUSB
-* Copyright (c) 2017 Rob Moran
+* Copyright (c) 2019 Rob Moran
 *
 * The MIT License (MIT)
 *
@@ -23,96 +23,42 @@
 * SOFTWARE.
 */
 
-import { USBRequestType, USBRecipient, USBTransferStatus } from "./enums";
-import { USBDevice } from "./device";
-
 /**
- * USB Options
+ * @hidden
  */
-export interface USBOptions {
-    /**
-     * A `device found` callback function to allow the user to select a device
-     */
-    devicesFound?: (devices: Array<USBDevice>) => Promise<USBDevice | void>;
-}
-
-/**
- * Device filter
- */
-export interface USBDeviceFilter {
-    vendorId?: number;
-    productId?: number;
-    classCode?: number;
-    subclassCode?: number;
-    protocolCode?: number;
-    serialnumber?: string;
-}
-
-/**
- * Device request options
- */
-export interface USBDeviceRequestOptions {
-    filters: Array<USBDeviceFilter>;
-}
-
-/**
- * Control transfer parameters
- */
-export interface USBControlTransferParameters {
-    requestType: USBRequestType;
-    recipient: USBRecipient;
-    request: number;
-    value: number;
-    index: number;
-}
-
-/**
- * In transfer result
- */
-export interface USBInTransferResult {
-    data?: DataView;
-    status: USBTransferStatus;
-}
-
-/**
- * Out transfer result
- */
-export interface USBOutTransferResult {
-    bytesWritten: number;
-    status: USBTransferStatus;
-}
+export interface DOMEvent extends Event {}
 
 /**
  * @hidden
- * Isochronous transfer packet (in)
  */
-export interface USBIsochronousInTransferPacket {
-    data?: DataView;
-    status: USBTransferStatus;
-}
+export interface W3CUSBConnectionEvent extends USBConnectionEvent {}
 
 /**
  * @hidden
- * Isochronous transfer result (in)
  */
-export interface USBIsochronousInTransferResult {
-    data?: DataView;
-    packets: Array<USBIsochronousInTransferPacket>;
-}
+export interface W3CUSB extends USB {}
 
 /**
  * @hidden
- * Isochronous transfer packet (out)
  */
-export interface USBIsochronousOutTransferPacket {
-    bytesWritten: number;
-    status: USBTransferStatus;
-}
+export interface W3CUSBDevice extends USBDevice {}
 
 /**
  * @hidden
- * Isochronous transfer result (out)
  */
-export interface USBIsochronousOutTransferResult {
-    packets: Array<USBIsochronousOutTransferPacket>;
-}
+export interface W3CUSBEndpoint extends USBEndpoint {}
+
+/**
+ * @hidden
+ */
+export interface W3CUSBConfiguration extends USBConfiguration {}
+
+/**
+ * @hidden
+ */
+export interface W3CUSBInterface extends USBInterface {}
+
+/**
+ * @hidden
+ */
+export interface W3CUSBAlternateInterface extends USBAlternateInterface {}

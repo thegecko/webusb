@@ -1,8 +1,9 @@
 import { USBEndpoint } from "./endpoint";
+import { W3CUSBAlternateInterface } from "./interfaces";
 /**
  * USB Alternate Interface
  */
-export declare class USBAlternateInterface {
+export declare class USBAlternateInterface implements W3CUSBAlternateInterface {
     /**
      * The alternate setting for this interface
      */

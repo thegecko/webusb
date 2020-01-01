@@ -23,13 +23,14 @@
 * SOFTWARE.
 */
 
-import { USBAlternateInterface } from "./alternate";
 import { adapter } from "./adapter";
+import { W3CUSBInterface } from "./interfaces";
+import { USBAlternateInterface } from "./alternate";
 
 /**
  * USB Interface
  */
-export class USBInterface {
+export class USBInterface implements W3CUSBInterface {
 
     /**
      * Number of this interface

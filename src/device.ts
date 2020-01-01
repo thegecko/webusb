@@ -24,19 +24,13 @@
 */
 
 import { LIBUSB_ENDPOINT_IN } from "usb";
-import { USBDirection } from "./enums";
-import {
-    USBControlTransferParameters,
-    USBInTransferResult,
-    USBOutTransferResult,
-    USBIsochronousInTransferResult,
-    USBIsochronousOutTransferResult
-} from "./interfaces";
 import { USBConfiguration } from "./configuration";
-import { USBInterface } from "./interface";
-import { USBEndpoint } from "./endpoint";
 import { adapter } from "./adapter";
+import { W3CUSBDevice } from "./interfaces";
 
+/**
+ * @hidden
+ */
 interface EndpointResult {
     endpoint: USBEndpoint;
     iface: USBInterface;
@@ -45,7 +39,7 @@ interface EndpointResult {
 /**
  * USB Device
  */
-export class USBDevice {
+export class USBDevice implements W3CUSBDevice {
 
     /**
      * Major USB protocol version supported by the device

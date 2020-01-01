@@ -1,8 +1,9 @@
+import { W3CUSBInterface } from "./interfaces";
 import { USBAlternateInterface } from "./alternate";
 /**
  * USB Interface
  */
-export declare class USBInterface {
+export declare class USBInterface implements W3CUSBInterface {
     /**
      * Number of this interface
      */
