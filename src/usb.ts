@@ -44,14 +44,6 @@ export interface USBOptions {
  */
 export interface USBEvents {
     /**
-     * @hidden
-     */
-    newListener: keyof USBEvents;
-    /**
-     * @hidden
-     */
-    removeListener: keyof USBEvents;
-    /**
      * USBDevice connected event
      */
     connect: USBConnectionEvent;
