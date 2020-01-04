@@ -1,9 +1,8 @@
 /// <reference types="w3c-web-usb" />
-import { DOMEvent, W3CUSBConnectionEvent } from "./interfaces";
 /**
  * @hidden
  */
-export declare class Event implements DOMEvent {
+export declare class DOMEvent implements Event {
     /**
      * Type of the event
      */
@@ -93,9 +92,12 @@ export declare class Event implements DOMEvent {
      */
     stopPropagation(): void;
 }
-export declare class USBConnectionEvent extends Event implements W3CUSBConnectionEvent {
+/**
+ * @hidden
+ */
+export declare class W3CUSBConnectionEvent extends DOMEvent implements USBConnectionEvent {
     /**
-     * {@link USBDevice} connected or disconnected
+     * Device connected or disconnected
      */
     readonly device: USBDevice;
     /**

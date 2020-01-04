@@ -23,14 +23,12 @@
 * SOFTWARE.
 */
 
-import { DOMEvent, W3CUSBConnectionEvent } from "./interfaces";
-
 // tslint:disable:max-classes-per-file
 
 /**
  * @hidden
  */
-export class Event implements DOMEvent {
+export class DOMEvent implements Event {
 
     /**
      * Type of the event
@@ -155,10 +153,13 @@ export class Event implements DOMEvent {
     }
 }
 
-export class USBConnectionEvent extends Event implements W3CUSBConnectionEvent {
+/**
+ * @hidden
+ */
+export class W3CUSBConnectionEvent extends DOMEvent implements USBConnectionEvent {
 
     /**
-     * {@link USBDevice} connected or disconnected
+     * Device connected or disconnected
      */
     public readonly device: USBDevice;
 

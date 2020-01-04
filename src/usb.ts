@@ -25,7 +25,7 @@
 
 import { EventDispatcher, TypedDispatcher } from "./dispatcher";
 import { USBAdapter, adapter } from "./adapter";
-import { USBConnectionEvent } from "./events";
+import { W3CUSBConnectionEvent } from "./events";
 import { USBDevice } from "./device";
 import { W3CUSB } from "./interfaces";
 
@@ -92,7 +92,7 @@ export class USB extends (EventDispatcher as new() => TypedDispatcher<USBEvents>
         const deviceConnectCallback = device => {
             // When connected, emit an event if it was a known allowed device
             if (this.replaceAllowedDevice(device)) {
-                const event = new USBConnectionEvent(this as EventTarget, "connect", { device }) as USBConnectionEvent;
+                const event = new W3CUSBConnectionEvent(this as EventTarget, "connect", { device }) as USBConnectionEvent;
                 this.dispatchEvent(event);
 
                 if (this.onconnect) {
@@ -106,7 +106,7 @@ export class USB extends (EventDispatcher as new() => TypedDispatcher<USBEvents>
             const device = this.allowedDevices.find(allowedDevices => allowedDevices._handle === handle);
 
             if (device) {
-                const event = new USBConnectionEvent(this as EventTarget, "disconnect", { device }) as USBConnectionEvent;
+                const event = new W3CUSBConnectionEvent(this as EventTarget, "disconnect", { device }) as USBConnectionEvent;
                 this.dispatchEvent(event);
 
                 if (this.ondisconnect) {

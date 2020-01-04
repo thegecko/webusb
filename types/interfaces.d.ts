@@ -2,16 +2,6 @@
 /**
  * @hidden
  */
-export interface DOMEvent extends Event {
-}
-/**
- * @hidden
- */
-export interface W3CUSBConnectionEvent extends USBConnectionEvent {
-}
-/**
- * @hidden
- */
 export interface W3CUSB extends USB {
 }
 /**
