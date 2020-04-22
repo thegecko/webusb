@@ -55,7 +55,7 @@ const usb = new USB({
 (async () => {
     try {
         const device = await usb.requestDevice({
-            filters: [{vendorId: 0x0d28}]
+            filters: [{vendorId: 0x0d28}, {vendorId: 0x0483}]
         });
 
         console.log(JSON.stringify(device, (key, value) => {
