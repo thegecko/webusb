@@ -1,6 +1,5 @@
 /// <reference types="w3c-web-usb" />
 import { TypedDispatcher } from "./dispatcher";
-import { USBDevice } from "./device";
 import { W3CUSB } from "./interfaces";
 /**
  * USB Options
