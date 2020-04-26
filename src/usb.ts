@@ -26,8 +26,8 @@
 import { EventDispatcher, TypedDispatcher } from "./dispatcher";
 import { USBAdapter, adapter } from "./adapter";
 import { W3CUSBConnectionEvent } from "./events";
-import { USBDevice } from "./device";
 import { W3CUSB } from "./interfaces";
+import { USBDevice as Device } from "./device";
 
 /**
  * USB Options
@@ -58,7 +58,7 @@ export interface USBEvents {
  */
 export class USB extends (EventDispatcher as new() => TypedDispatcher<USBEvents>) implements W3CUSB {
 
-    private allowedDevices: Array<USBDevice> = [];
+    private allowedDevices: Array<Device> = [];
     private devicesFound: (devices: Array<USBDevice>) => Promise<USBDevice | void>;
 
     private _onconnect: (ev: USBConnectionEvent) => void;
@@ -144,7 +144,7 @@ export class USB extends (EventDispatcher as new() => TypedDispatcher<USBEvents>
         });
     }
 
-    private replaceAllowedDevice(device: USBDevice): boolean {
+    private replaceAllowedDevice(device: Device): boolean {
         for (const i in this.allowedDevices) {
             if (this.isSameDevice(device, this.allowedDevices[i])) {
                 this.allowedDevices[i] = device;
