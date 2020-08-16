@@ -38,7 +38,4 @@ export { USB, USBOptions };
 /**
  * Adapter
  */
-export {
-    adapter,
-    USBAdapter
-} from "./adapter";
+export * from "./adapters";

@@ -24,7 +24,7 @@
 */
 
 import { EventDispatcher, TypedDispatcher } from "./dispatcher";
-import { USBAdapter, adapter } from "./adapter";
+import { adapter, Adapter, setAdapter } from "./adapters/index";
 import { W3CUSBConnectionEvent } from "./events";
 import { W3CUSB } from "./interfaces";
 import { USBDevice as Device } from "./device";
@@ -37,6 +37,10 @@ export interface USBOptions {
      * A `device found` callback function to allow the user to select a device
      */
     devicesFound?: (devices: Array<USBDevice>) => Promise<USBDevice | void>;
+    /**
+     * An overridden Adapter instance to use
+     */
+    adapter?: Adapter;
 }
 
 /**
@@ -85,8 +89,12 @@ export class USB extends (EventDispatcher as new() => TypedDispatcher<USBEvents>
      */
     constructor(options?: USBOptions) {
         super();
-
         options = options || {};
+
+        if (options.adapter) {
+            setAdapter(options.adapter);
+        }
+
         this.devicesFound = options.devicesFound;
 
         const deviceConnectCallback = device => {
@@ -123,9 +131,9 @@ export class USB extends (EventDispatcher as new() => TypedDispatcher<USBEvents>
             }
 
             if (event === "connect") {
-                adapter.addListener(USBAdapter.EVENT_DEVICE_CONNECT, deviceConnectCallback);
+                adapter.addListener("connect", deviceConnectCallback);
             } else if (event === "disconnect") {
-                adapter.addListener(USBAdapter.EVENT_DEVICE_DISCONNECT, deviceDisconnectCallback);
+                adapter.addListener("disconnect", deviceDisconnectCallback);
             }
         });
 
@@ -137,9 +145,9 @@ export class USB extends (EventDispatcher as new() => TypedDispatcher<USBEvents>
             }
 
             if (event === "connect") {
-                adapter.removeListener(USBAdapter.EVENT_DEVICE_CONNECT, deviceConnectCallback);
+                adapter.removeListener("connect", deviceConnectCallback);
             } else if (event === "disconnect") {
-                adapter.removeListener(USBAdapter.EVENT_DEVICE_DISCONNECT, deviceDisconnectCallback);
+                adapter.removeListener("disconnect", deviceDisconnectCallback);
             }
         });
     }

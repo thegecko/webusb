@@ -6,7 +6,6 @@
   "author": "Rob Moran <rob@thegecko.org>",
   "license": "MIT",
   "main": "dist/webusb.umd.js",
-  "module": "dist/webusb.esm.js",
   "types": "types/index.d.ts",
   "repository": {
     "type": "git",

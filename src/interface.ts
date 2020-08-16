@@ -23,7 +23,7 @@
 * SOFTWARE.
 */
 
-import { adapter } from "./adapter";
+import { adapter } from "./adapters";
 import { W3CUSBInterface } from "./interfaces";
 import { USBAlternateInterface } from "./alternate";
 

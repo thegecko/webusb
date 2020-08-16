@@ -25,7 +25,7 @@
 
 import { LIBUSB_ENDPOINT_IN } from "usb";
 import { USBConfiguration } from "./configuration";
-import { adapter } from "./adapter";
+import { adapter } from "./adapters";
 import { W3CUSBDevice } from "./interfaces";
 
 /**

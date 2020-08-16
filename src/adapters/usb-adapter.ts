@@ -23,7 +23,6 @@
 * SOFTWARE.
 */
 
-import { EventEmitter } from "events";
 import {
     getDeviceList,
     Device,
@@ -51,11 +50,13 @@ import {
     DeviceDescriptor,
     Capability
 } from "usb";
-import { USBConfiguration } from "./configuration";
-import { USBInterface } from "./interface";
-import { USBAlternateInterface } from "./alternate";
-import { USBEndpoint } from "./endpoint";
-import { USBDevice } from "./device";
+import { USBConfiguration } from "../configuration";
+import { USBInterface } from "../interface";
+import { USBAlternateInterface } from "../alternate";
+import { USBEndpoint } from "../endpoint";
+import { USBDevice } from "../device";
+import { Adapter, USBEvents } from "./index";
+import { EventDispatcher, TypedDispatcher } from "../dispatcher";
 
 /**
  * @hidden
@@ -85,34 +86,7 @@ const CONSTANTS = {
 /**
  * @hidden
  */
-export interface Adapter {
-    getConnected(handle: string): boolean;
-    getOpened(handle: string): boolean;
-
-    listUSBDevices(): Promise<Array<USBDevice>>;
-    open(handle: string): Promise<void>;
-    close(handle: string): Promise<void>;
-    selectConfiguration(handle: string, id: number): Promise<void>;
-    claimInterface(handle: string, address: number): Promise<void>;
-    releaseInterface(handle: string, address: number): Promise<void>;
-    selectAlternateInterface(handle: string, interfaceNumber: number, alternateSetting: number): Promise<void>;
-    controlTransferIn(handle: string, setup: USBControlTransferParameters, length: number): Promise<USBInTransferResult>;
-    controlTransferOut(handle: string, setup: USBControlTransferParameters, data: ArrayBuffer | ArrayBufferView): Promise<USBOutTransferResult>;
-    clearHalt(handle: string, direction: USBDirection, endpointNumber: number): Promise<void>;
-    transferIn(handle: string, endpointNumber: number, length: number): Promise<USBInTransferResult>;
-    transferOut(handle: string, endpointNumber: number, data: BufferSource): Promise<USBOutTransferResult>;
-    isochronousTransferIn(_handle: string, _endpointNumber: number, _packetLengths: Array<number>): Promise<USBIsochronousInTransferResult>;
-    isochronousTransferOut(_handle: string, _endpointNumber: number, _data: BufferSource, _packetLengths: Array<number>): Promise<USBIsochronousOutTransferResult>;
-    reset(handle: string): Promise<void>;
-}
-
-/**
- * @hidden
- */
-export class USBAdapter extends EventEmitter implements Adapter {
-
-    public static EVENT_DEVICE_CONNECT: string = "connect";
-    public static EVENT_DEVICE_DISCONNECT: string = "disconnect";
+export class USBAdapter extends (EventDispatcher as new() => TypedDispatcher<USBEvents>) implements Adapter {
 
     // Maintains a live list of connected Web USB devices
     private devices: { [key: string]: { device: Device, url: string }} = {};
@@ -128,7 +102,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
                     this.devicetoUSBDevice(handle)
                     .then(usbDevice => {
                         if (usbDevice) {
-                            this.emit(USBAdapter.EVENT_DEVICE_CONNECT, usbDevice);
+                            this.emit("connect", usbDevice);
                         }
                     });
                 }
@@ -140,7 +114,7 @@ export class USBAdapter extends EventEmitter implements Adapter {
 
             if (handle && this.devices[handle]) {
                 delete this.devices[handle];
-                this.emit(USBAdapter.EVENT_DEVICE_DISCONNECT, handle);
+                this.emit("disconnect", handle);
             }
         };
 
@@ -151,9 +125,9 @@ export class USBAdapter extends EventEmitter implements Adapter {
                 return;
             }
 
-            if (event === USBAdapter.EVENT_DEVICE_CONNECT) {
+            if (event === "connect") {
                 on("attach", attachCallback);
-            } else if (event === USBAdapter.EVENT_DEVICE_DISCONNECT) {
+            } else if (event === "disconnect") {
                 on("detach", detachCallback);
             }
         });
@@ -165,9 +139,9 @@ export class USBAdapter extends EventEmitter implements Adapter {
                 return;
             }
 
-            if (event === USBAdapter.EVENT_DEVICE_CONNECT) {
+            if (event === "connect") {
                 removeListener("attach", attachCallback);
-            } else if (event === USBAdapter.EVENT_DEVICE_DISCONNECT) {
+            } else if (event === "disconnect") {
                 removeListener("detach", detachCallback);
             }
         });
@@ -794,8 +768,3 @@ export class USBAdapter extends EventEmitter implements Adapter {
         });
     }
 }
-
-/**
- * @hidden
- */
-export const adapter = new USBAdapter();
