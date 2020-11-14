@@ -8,7 +8,7 @@ import { USBDevice } from "./device";
 export interface Adapter {
     getConnected(handle: string): boolean;
     getOpened(handle: string): boolean;
-    listUSBDevices(filters: Array<USBDeviceFilter>): Promise<Array<USBDevice>>;
+    listUSBDevices(preFilters?: Array<USBDeviceFilter>): Promise<Array<USBDevice>>;
     open(handle: string): Promise<void>;
     close(handle: string): Promise<void>;
     selectConfiguration(handle: string, id: number): Promise<void>;
@@ -38,7 +38,7 @@ export declare class USBAdapter extends EventEmitter implements Adapter {
     private delay;
     private retryPromise;
     private loadDevices;
-    private filterDevices;
+    private preFilterDevices;
     private loadDevice;
     private getCapabilities;
     private getWebCapability;
@@ -61,7 +61,7 @@ export declare class USBAdapter extends EventEmitter implements Adapter {
     private openDevice;
     getConnected(handle: string): boolean;
     getOpened(handle: string): boolean;
-    listUSBDevices(filters: Array<USBDeviceFilter>): Promise<Array<USBDevice>>;
+    listUSBDevices(preFilters?: Array<USBDeviceFilter>): Promise<Array<USBDevice>>;
     open(handle: string): Promise<void>;
     close(handle: string): Promise<void>;
     selectConfiguration(handle: string, id: number): Promise<void>;
