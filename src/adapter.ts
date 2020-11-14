@@ -89,7 +89,7 @@ export interface Adapter {
     getConnected(handle: string): boolean;
     getOpened(handle: string): boolean;
 
-    listUSBDevices(filters: Array<USBDeviceFilter>): Promise<Array<USBDevice>>;
+    listUSBDevices(preFilters?: Array<USBDeviceFilter>): Promise<Array<USBDevice>>;
     open(handle: string): Promise<void>;
     close(handle: string): Promise<void>;
     selectConfiguration(handle: string, id: number): Promise<void>;
@@ -234,32 +234,27 @@ export class USBAdapter extends EventEmitter implements Adapter {
         });
     }
 
-    private loadDevices(filters: Array<USBDeviceFilter>): Promise<Array<Device>> {
+    private loadDevices(preFilters?: Array<USBDeviceFilter>): Promise<Array<Device>> {
         // Reset device cache
         this.devices = {};
         let devices = getDeviceList();
 
-        // Pre-filter devices
-        devices = this.filterDevices(devices, filters);
+        if (preFilters) {
+            // Pre-filter devices
+            devices = this.preFilterDevices(devices, preFilters);
+        }
+
         return this.serialPromises(this.loadDevice, devices);
     }
 
-    private filterDevices(devices: Array<Device>, filters: Array<USBDeviceFilter>): Array<Device> {
-        return devices.filter(device => filters.some(filter => {
+    private preFilterDevices(devices: Array<Device>, preFilters: Array<USBDeviceFilter>): Array<Device> {
+        // Just pre-filter on vid/pid
+        return devices.filter(device => preFilters.some(filter => {
             // Vendor
             if (filter.vendorId && filter.vendorId !== device.deviceDescriptor.idVendor) return false;
 
             // Product
             if (filter.productId && filter.productId !== device.deviceDescriptor.idProduct) return false;
-
-            // Class
-            if (filter.classCode && filter.classCode !== device.deviceDescriptor.bDeviceClass) return false;
-
-            // Subclass
-            if (filter.subclassCode && filter.subclassCode !== device.deviceDescriptor.bDeviceSubClass) return false;
-
-            // Protocol
-            if (filter.protocolCode && filter.protocolCode !== device.deviceDescriptor.bDeviceProtocol) return false;
 
             // Ignore serial number for node-usb as it requires device connection
             return true;
@@ -615,8 +610,8 @@ export class USBAdapter extends EventEmitter implements Adapter {
         return (device.interfaces !== null);
     }
 
-    public listUSBDevices(filters: Array<USBDeviceFilter>): Promise<Array<USBDevice>> {
-        return this.loadDevices(filters)
+    public listUSBDevices(preFilters?: Array<USBDeviceFilter>): Promise<Array<USBDevice>> {
+        return this.loadDevices(preFilters)
         .then(() => {
             return this.serialPromises(this.devicetoUSBDevice, Object.keys(this.devices));
         });

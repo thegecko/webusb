@@ -211,7 +211,7 @@ export class USB extends (EventDispatcher as new() => TypedDispatcher<USBEvents>
      */
     public getDevices(): Promise<Array<USBDevice>> {
         // Create pre-filters
-        const filters = this.allowedDevices.map(device => ({
+        const preFilters = this.allowedDevices.map(device => ({
             vendorId: device.vendorId || undefined,
             productId: device.productId || undefined,
             classCode: device.deviceClass || undefined,
@@ -221,7 +221,7 @@ export class USB extends (EventDispatcher as new() => TypedDispatcher<USBEvents>
         }));
 
         // Refresh devices and filter for allowed ones
-        return adapter.listUSBDevices(filters)
+        return adapter.listUSBDevices(preFilters)
         .then(devices => {
             const allowed = devices.filter(device => {
                 if (!device.connected) {
