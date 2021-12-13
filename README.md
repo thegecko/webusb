@@ -1,3 +1,6 @@
+| :warning: __This package is deprecated, please use the `WebUSB` API in the [usb package](https://github.com/node-usb/node-usb) instead__ :warning:|
+| --- |
+
 # Node WebUSB
 Node.js implementation of the WebUSB Specification
 
